@@ -1,0 +1,91 @@
+﻿@using SunCare.Models;
+@using SunCare.Repository;
+@{
+    Layout = null;
+}
+
+<!DOCTYPE html>
+
+<html>
+<head>
+    <meta name="viewport" content="width=device-width" />
+    <title>個案資料</title>
+    @Styles.Render("~/Content/css")
+    @Scripts.Render("~/bundles/modernizr")
+    @Scripts.Render("~/bundles/jquery")
+    @Scripts.Render("~/bundles/bootstrap")
+    <script>
+        $(document).ready(function () {
+            $(".genderBtn").click(function () {
+
+                var gender = -1;
+                if ($(this).attr("isPressed").trim() == "true") {
+                    $(this).css({ "background-color": "var(--grayColor)" });
+                    $(".abnormalBtn").css({ "background-color": "var(--grayColor)" });
+                    $(".abnormalBtn").attr("isPressed", "false");
+                    $(this).attr("isPressed", "false");
+                    gender = -1;
+                }
+                else {
+                    $(".genderBtn").css({ "background-color": "var(--grayColor)" });
+                    $(".genderBtn").attr("isPressed", "false");
+
+                    $(".abnormalBtn").css({ "background-color": "var(--grayColor)" });
+                    $(".abnormalBtn").attr("isPressed", "false");
+                    $(this).css({ "background-color": "var(--yellowColor)" });
+                    $(this).attr("isPressed", "true");
+                    gender = parseInt($(this).attr("myValue"));
+                }
+                $(".caseInfoList").load("/Home/CasePartialPatient", { gender });
+
+
+            });
+            $(".abnormalBtn").click(function () {
+                if ($(this).attr("isPressed").trim() == "true") {
+                    $(this).css({ "background-color": "var(--grayColor)" });
+                    $(this).attr("isPressed", "false");
+                    
+                    $(".genderBtn").css({ "background-color": "var(--grayColor)" });
+                    $(".genderBtn").attr("isPressed", "false");
+
+                }
+                else {
+                    $(".abnormalBtn").css({ "background-color": "var(--grayColor)" });
+                    $(".abnormalBtn").attr("isPressed", "false");
+
+                    $(this).css({ "background-color": "var(--yellowColor)" });
+                    $(this).attr("isPressed", "true");
+                    
+                    $(".genderBtn").css({ "background-color": "var(--grayColor)" });
+                    $(".genderBtn").attr("isPressed", "false");
+
+                }
+
+            });
+        });
+    </script>
+</head>
+<body>
+    <div class="outterDiv">
+        <div class="caseBar">
+            <a href="@Url.Action("Index","Home")"><img src="~/Images/btn_Back.png" /></a>
+            <span>@RegularFunction.getCurrentEmployeeName()</span>
+            <img src="~/Images/btn_Female.png" id="femaleBtn" class="genderBtn" isPressed="false" myValue="0"/>
+            <img src="~/Images/btn_Male.png" id="maleBtn" class="genderBtn" isPressed="false" myValue="1"/>
+            <img src="~/Images/btn_warning.png" id="abnormalBtn" class="abnormalBtn" isPressed="false"  />
+        </div>
+        <div class="searchBar">
+            <select class="bigger-font">
+                @foreach (ServiceItem eachItem in (List<ServiceItem>)ViewData["allItems"])
+                {
+                    <option value="@eachItem.ServiceID">@eachItem.ServiceName</option>
+                }
+            </select>
+        </div>
+        <div class="caseInfoList">
+            @Html.Action("CasePartialPatient")
+        </div>
+    </div>
+
+</body>
+</html>

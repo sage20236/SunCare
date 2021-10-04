@@ -1,0 +1,39 @@
+﻿
+@{
+    Layout = null;
+}
+
+<!DOCTYPE html>
+
+<html>
+<head>
+    <meta name="viewport" content="width=device-width" />
+    <title>Login</title>
+    @Styles.Render("~/Content/css")
+    @Scripts.Render("~/bundles/modernizr")
+</head>
+<body>
+    <div>
+        <form method="post">
+            <div class="loginDiv">
+                <img src="~/Images/logo.png" />
+                <div class="loginInputsDiv">
+                    <input type="text" class="myInput loginInputs" required name="account"/>
+                    <span>帳號</span>
+                </div>
+                <div class="loginInputsDiv">
+                    <input type="password" class="myInput loginInputs" required name="password"/>
+                    <span>密碼</span>
+                </div>
+                <div class="loginInputsDiv">
+                    <input type="submit" class="loginBtn" value="登入" />
+                </div>
+                <div>
+                    <span style="color:red;">@ViewData["msg"]</span>
+                    
+                </div>
+            </div>
+        </form>
+    </div>
+</body>
+</html>

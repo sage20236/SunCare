@@ -1,0 +1,14 @@
+﻿@using SunCare.Models;
+@using SunCare.Repository; 
+@foreach (Patient eachPatient in Model)
+{
+    <div>
+        <a class="removeA" href="@Url.Action("CaseEachInfo","Home",new { patientID=RegularFunction.encrypt(eachPatient.PatientID.ToString())})">
+            <div class="eachCasePatient @(eachPatient.Gender==1?"boyBackground":"girlBackground")" gender="@eachPatient.Gender">
+                <img src="@(eachPatient.Gender==1?"/Images/icon_Male.png":"/Images/icon_Female.png")" />
+                <div>@eachPatient.CaseID</div>
+                <div>@eachPatient.Name</div>
+            </div>
+        </a>
+    </div>
+}

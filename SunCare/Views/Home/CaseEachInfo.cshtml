@@ -1,0 +1,965 @@
+﻿@using SunCare.Repository;
+@using SunCare.Models;
+@using Newtonsoft.Json;
+@{
+    Layout = null;
+    var itemsData = (List<ServiceItem>)ViewData["allItems"];
+    var patientsData = (List<Patient>)ViewData["patients"];
+    var currentPatientID = (int)ViewData["patientID"];
+    var patientRecords = (List<RecordDetail>)ViewData["recordDetails"];
+    var orderby = (int)ViewData["orderby"];
+}
+
+<!DOCTYPE html>
+
+<html>
+<head>
+    <meta name="viewport" content="width=device-width" />
+    <title>CaseEachInfo</title>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@10"></script>
+    @Styles.Render("~/Content/css")
+    @Scripts.Render("~/bundles/modernizr")
+    @Scripts.Render("~/bundles/jquery")
+    @Scripts.Render("~/bundles/bootstrap")
+<script>
+        $(document).ready(function () {
+
+            /*set popover service items*/
+            var innerHTML = $("#serviceItems").clone();
+            //set color for each item
+            $(".addEachItem", innerHTML).each(function () {
+                var colorR = $(this).attr("colorR");
+                var colorG = $(this).attr("colorG");
+                var colorB = $(this).attr("colorB");
+                var serviceID = $(this).attr("serviceID");
+
+                var colorString = `rgb(${colorR},${colorG},${colorB})`;
+                $('head').append('<style>.service' + serviceID + ' {background-color:' + colorString + ';}</style>');
+            });
+
+
+            var popoverShow = false;
+            $(".serviceAddBtn").popover({
+                animation: true,
+                content: innerHTML.html(),
+                html: true,
+                trigger: 'click',
+                placement: 'bottom',
+                sanitize: false
+            }).on('shown.bs.popover', function () {
+                var popover = $(this).next();
+                var allItems = popover.find(".addEachItem");
+                allItems.unbind();
+                allItems.click(function () {
+                    //show customize insert div after clicking on a item
+                    var serviceID = $(this).attr("serviceID");
+                    $(".addRecordForm").hide();
+                    $(".maskDiv").fadeIn();
+                    $(`.addRecordForm[serviceID=${serviceID}]`).fadeIn();
+                });
+            }).on('show.bs.popover', function () {
+                popoverShow = true;
+                $("img", this).css({ "background-color": "var(--yellowColor)" });
+                $(".maskDiv").fadeIn();
+            }).on('hide.bs.popover', function () {
+                popoverShow = false;
+                $("img", this).css({ "background-color": "var(--grayColor)" });
+                $(".maskDiv").fadeOut();
+            });
+
+            $(".serviceAddBtn").blur(function () {
+                if (popoverShow) {
+                    $(this).click();
+                }
+            });
+
+            /*set popover service items*/
+
+
+        /*set dotted popover*/
+            var medineOptions = $("#medicineActions").clone();
+            $(".expandDot").click(function (e) {
+                e.stopPropagation();
+            });
+            $(".expandDot").popover({
+                animation: true,
+                content: medineOptions.html(),
+                html: true,
+                trigger: 'focus',
+                placement: 'left',
+                sanitize: false
+            }).on('inserted.bs.popover', function () {
+                var popover = $(this).next();
+                var recordID = $(this).attr("recordID");
+                var noteExisit = $(`.noteForm[recordID="${recordID}"]`).length > 0;
+                if (noteExisit) {
+                    var medicineNote = popover.find(".medicineNote");
+                    medicineNote.attr("recordID", recordID);
+                    medicineNote.unbind();
+                    medicineNote.click(function (e) {
+                        e.stopPropagation();
+                        var myRecordID = $(this).attr("recordID");
+                        $(`.noteForm[recordID="${myRecordID}"],.maskDiv`).fadeIn();
+                    });
+                }
+                else {
+                    var medicineNoteDiv = popover.find(".popoverNotesDiv");
+                    medicineNoteDiv.remove();
+                }
+                var medicineForm = popover.find(".medicineList");
+                medicineForm.attr("recordID", recordID);
+                medicineForm.unbind();
+                medicineForm.click(function (e) {
+                    e.stopPropagation();
+                    var myRecordID = $(this).attr("recordID");
+                    $(`.medicineForm[recordID="${myRecordID}"],.maskDiv`).fadeIn();
+                });
+
+                $(".maskDiv").fadeIn();
+            }).on('hide.bs.popover', function () {
+                $(".maskDiv").fadeOut();
+            });
+
+            /*set dotted popover*/
+
+
+            /*set order by btn*/
+            $(".orderbyBtn").click(function () {
+                var orderby = ($(this).attr("orderby"));
+                $(".orderbyDiv").hide();
+                if (orderby.trim() == "1") {
+                    $(`.orderby0`).show();
+                    orderby = "0";
+                    $(this).attr("src", "/Images/btn_Type.png");
+                }
+                else {
+                    $(`.orderby1`).show();
+                    orderby = "1";
+                    $(this).attr("src", "/Images/btn_Time.png");
+                }
+
+                $(this).attr("orderby", orderby);
+            });
+            /*set order by btn*/
+
+            /*set the cancel btn*/
+            $(".cancelBtn,.maskDiv").click(function () {
+                $(".recordForm,.maskDiv,.transferOuterDiv").fadeOut();
+                $(".noteBtn").css({ "background-color": "var(--grayColor)" });
+            });
+            /*set the cancel btn*/
+
+            /*set note btn*/
+            $(".noteBtn").click(function () {
+                if ($(".transferOuterDiv:visible").length == 0) {
+                    $(this).css({ "background-color": "var(--yellowColor)" });
+                    $(".transferOuterDiv,.maskDiv").fadeIn();
+                }
+                else {
+                    $(this).css({ "background-color": "var(--grayColor)" });
+                    $(".transferOuterDiv,.maskDiv").fadeOut();
+                }
+
+            });
+            /*set note btn*/
+
+
+
+            /*collect all the answers in the form afer submiting the form*/
+            $(".addSubmitBtn").click(function (e) {
+                var serviceID = $(this).attr("serviceID");
+                var model = `.addRecordForm[serviceID=${serviceID}]`;
+                validateOptions(model);
+                if (!$(model)[0].reportValidity()) {
+                    return false;
+                }
+                var submitAnswer = collectAnswer(serviceID, model,@(RegularFunction.getCurrentEmployeeID()),@((int)ViewData["patientID"]));
+
+                
+
+                $(this).prop("disabled", true);
+                return Swal.fire({
+                    title: "確定要新增嗎",
+                    text: "",
+                    icon: "warning",
+                    showCancelButton: true,
+                    confirmButtonColor: "#DD6B55",
+                    confirmButtonText: "確定",
+                    cancelButtonText: "取消"
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                       $(".maskDiv").unbind();
+                       $(".loadingDiv, .maskDiv").fadeIn();
+                       $.ajax({
+                            url: "@Url.Action("InsertRecord", "Home")",
+                            data: JSON.stringify(submitAnswer),
+                            type: 'POST',
+                            contentType: 'application/json;',
+                            dataType: 'json',
+                            success: function (data) {
+                                $(".recordForm").fadeOut();
+                                window.location.reload();
+                            }
+                       });
+                    }
+                    $(".addSubmitBtn").prop("disabled", false);
+                });
+
+            });
+            /*collect all the answers in the form afer submiting the form*/
+
+
+
+            /*change patient*/
+            $("#patientSelector").change(function () {
+                var encryptedPatient = $(this).val();
+                window.location = "/Home/CaseEachInfo?patientID=" + encryptedPatient;
+            });
+            /*change patient*/
+
+            /*setting edit btn*/
+            
+            $(".showEachRecord").click(function (e) {
+                e.stopPropagation();
+                var serviceID = $(this).attr("serviceID");
+                var recordData = JSON.parse($(this).attr("record"));
+
+                var model = `.editRecordForm[serviceID=${serviceID}]`;
+                recordData["RecordDetails"].forEach(function(data){
+                    var questionID = data["QuestionID"];
+                    switch (data["Question"]["Type"].trim()) {
+                        case "text":
+                            $(`.editRecordForm[serviceID='${serviceID}'] input[textBox='true'][QuestionID='${questionID}']`).val(data["TextAnswer"]);
+                        case "textarea":
+                            $(`.editRecordForm[serviceID='${serviceID}'] textarea[QuestionID='${questionID}']`).val(data["TextAnswer"]);
+                            break;
+                        case "radio":
+                        case "checkbox":
+                            data["RecordDetailsOptions"].forEach(function (eachData) {
+                                $(`.editRecordForm[serviceID='${serviceID}'] input[optionID='${eachData["OptionID"]}']`).prop("checked", true);
+                            });
+                            break;
+                        case "select":
+                            data["RecordDetailsOptions"].forEach(function (eachData) {
+                                $(`.editRecordForm[serviceID='${serviceID}'] select[QuestionID='${questionID}']`).val(eachData["OptionID"]);
+                            });
+                            break;
+                    }
+                });
+
+                $(`.deleteBtn[serviceID='${serviceID}']`).attr("recordID", recordData["RecordID"]);
+                $(`.editSubmitBtn[serviceID='${serviceID}']`).attr("recordID",recordData["RecordID"]);
+
+                $(`${model},.maskDiv`).fadeIn();
+            });
+            $(".deleteBtn").click(function () {
+                var recordID = $(this).attr("recordID");
+
+
+                $(this).prop("disabled", true);
+                return Swal.fire({
+                    title: "確定要刪除嗎",
+                    text: "",
+                    icon: "warning",
+                    showCancelButton: true,
+                    confirmButtonColor: "#DD6B55",
+                    confirmButtonText: "確定",
+                    cancelButtonText: "取消"
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        $(".maskDiv").unbind();
+                        $(".loadingDiv, .maskDiv").fadeIn();
+                        $.ajax({
+                            url: "@Url.Action("DeleteRecord", "Home")",
+                            data: JSON.stringify({ recordID: recordID }),
+                            type: 'POST',
+                            contentType: 'application/json;',
+                            dataType: 'json',
+                            success: function (data) {
+                                $(".recordForm").fadeOut();
+                                window.location.reload();
+                            }
+                        });
+                    }
+                    $(".deleteBtn").prop("disabled", false);
+                });
+            });
+            $(".editSubmitBtn").click(function () {
+
+                var serviceID = $(this).attr("serviceID");
+                var recordID = $(this).attr("recordID");
+                var model = `.editRecordForm[serviceID=${serviceID}]`;
+                validateOptions(model);
+                if (!$(model)[0].reportValidity()) {
+                    return false;
+                }
+                var recordData = JSON.parse($(`.showEachRecord[serviceID=${serviceID}][recordID='${recordID}']`).attr("record"));
+
+                var submitAnswer=collectAnswer(serviceID, model, @(RegularFunction.getCurrentEmployeeID()), recordData["PatientID"],recordData["RecordID"]);
+
+
+                $(this).prop("disabled", true);
+                
+                return Swal.fire({
+                    title: "確定要更新嗎",
+                    text: "",
+                    icon: "warning",
+                    showCancelButton: true,
+                    confirmButtonColor: "#DD6B55",
+                    confirmButtonText: "確定",
+                    cancelButtonText: "取消"
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        $(".maskDiv").unbind();
+                        $(".loadingDiv, .maskDiv").fadeIn();
+                        $.ajax({
+                            url: "@Url.Action("EditRecord", "Home")",
+                            data: JSON.stringify(submitAnswer),
+                            type: 'POST',
+                            contentType: 'application/json;',
+                            dataType: 'json',
+                            success: function (data) {
+                                $(".recordForm").fadeOut();
+                                window.location.reload();
+                            }
+                        });
+                    }
+                    $(".editSubmitBtn").prop("disabled", false);
+                });
+
+
+
+
+
+
+
+
+            });
+            function validateOptions(model) {
+                var isSuccess = true;
+
+                $(".optionsDiv",model).each(function () {
+                    if ($("input:checked", this).length == 0) {
+                        $("input", this)[0].setCustomValidity("請填寫完整");
+                        isSuccess = false;
+                    }
+                });
+
+
+                //因為custom validity出來 如果點該選項會一直出來 要把它取消掉
+                $(".optionsDiv",model).unbind();
+                $(".optionsDiv", model).click(function () {
+                    $(".optionsDiv input", model)[0].setCustomValidity("");
+                });
+                return isSuccess;
+            }
+            function collectAnswer(serviceID,location,employeeID,patientID,recordID=0) {
+                var submitAnswer = {};
+                submitAnswer["RecordID"] = recordID;
+                submitAnswer["ServiceID"] = serviceID;
+                submitAnswer["EmployeeID"] = employeeID;
+                submitAnswer["RecordDetails"] = [];
+                submitAnswer["PatientID"] = patientID;
+                //collect text
+                $(`input[textBox='true']`,location).each(function () {
+                    var questionID = $(this).attr("QuestionID");
+                    var answer = $(this).val();
+                    var eachAnswers = {};
+                    eachAnswers["QuestionID"] = questionID;
+                    eachAnswers["TextAnswer"] = answer;
+                    eachAnswers["RecordDetailsOptions"] = [];
+                    submitAnswer["RecordDetails"].push(eachAnswers);
+                });
+                //textarea value
+                $(`textarea`,location).each(function () {
+                    var questionID = $(this).attr("QuestionID");
+                    var answer = $(this).val();
+                    var eachAnswers = {};
+                    eachAnswers["QuestionID"] = questionID;
+                    eachAnswers["TextAnswer"] = answer;
+                    eachAnswers["RecordDetailsOptions"] = [];
+                    submitAnswer["RecordDetails"].push(eachAnswers);
+                });
+                //collect select value
+                $(`select`,location).each(function () {
+                    var questionID = $(this).attr("QuestionID");
+
+                    var answerArray = [];
+                    var answerJson = {};
+                    answerJson["OptionID"] = $(this).val();
+                    answerArray.push(answerJson);
+                    var eachAnswers = {};
+                    eachAnswers["QuestionID"] = questionID;
+                    eachAnswers["TextAnswer"] = "";
+                    eachAnswers["RecordDetailsOptions"] = answerArray;
+                    submitAnswer["RecordDetails"].push(eachAnswers);
+                });
+                //collect radio and checkbox value
+                $(`div[multipleOptions='true']`,location).each(function () {
+                    var questionID = $(this).attr("QuestionID");
+                    var answerArray = [];
+                    $("input:checked", this).each(function () {
+                        var answerJson = {};
+                        answerJson["OptionID"] = $(this).val();
+                        answerArray.push(answerJson);
+                    });
+
+                    var eachAnswers = {};
+                    eachAnswers["QuestionID"] = questionID;
+                    eachAnswers["TextAnswer"] = "";
+                    eachAnswers["RecordDetailsOptions"] = answerArray;
+                    submitAnswer["RecordDetails"].push(eachAnswers);
+                });
+                return submitAnswer;
+            }
+
+
+
+            $(".notesBtns").click(function (e) {
+                e.stopPropagation();
+                var recordID = $(this).attr("recordID");
+                $(`.noteForm[recordID="${recordID}"],.maskDiv`).fadeIn();
+            });
+            $(".recordForm").click(function (e) {
+                e.stopPropagation();
+            });
+
+        });
+
+
+
+
+
+
+</script>
+    <style>
+        .popover {
+            max-width: 100%;
+        }
+    </style>
+    <style>
+    </style>
+</head>
+<body>
+    <div id="serviceItems" style="display:none;">
+        <div class="myOptions">
+            @foreach (ServiceItem eachItem in itemsData.Where(x => x.ServiceID != 1))
+            {
+                <div colorR="@eachItem.ColorR" class="addEachItem service@(eachItem.ServiceID)" colorG="@eachItem.ColorG" colorB="@eachItem.ColorB" serviceID="@eachItem.ServiceID">@eachItem.ServiceName</div>
+            }
+        </div>
+    </div>
+    <div id="medicineActions" style="display:none;">
+        <div class="medicineOptions">
+            <div>
+                <div class="medicineBtns medicineList">用藥清單</div>
+            </div>
+            <div class="popoverNotesDiv">
+                <div class="medicineBtns medicineNote">備註紀錄</div>
+            </div>
+        </div>
+    </div>
+    <div class="outterDiv">
+        <div class="caseBar caseBarPinned">
+            <a href="@Url.Action("CaseInfo","Home")"><img src="~/Images/btn_Back.png" /></a>
+            <select class="myInput2 bigger-font" id="patientSelector">
+                @foreach (Patient eachPatient in patientsData)
+                {
+                    <option value="@(RegularFunction.encrypt(eachPatient.PatientID.ToString()))" @(eachPatient.PatientID == (int)ViewData["patientID"] ? "selected" : "")>@eachPatient.Name</option>
+                }
+            </select>
+            <a tabindex="0" class="serviceAddBtn removeA" role="button" data-toggle="popover" data-trigger="focus" title="">
+                <img src="~/Images/btn_Add.png" />
+            </a>
+            <img src="~/Images/btn_Note.png" class="noteBtn" />
+            <img src="@(orderby==1?"/Images/btn_Time.png":"/Images/btn_Type.png")" class="orderbyBtn" orderby="@orderby" />
+        </div>
+        <div class="divMargin">
+            <div style="display:@(orderby==0?"block":"none");" class="orderbyDiv orderby0">@showAnswerByTime(patientRecords)</div>
+            <div style="display:@(orderby==1?"block":"none");" class="orderbyDiv orderby1">@showAnswerByCategory(itemsData, currentPatientID)</div>
+        </div>
+    </div>
+    @helper showAnswerByTime(List<RecordDetail> patientRecords)
+    {
+        foreach (RecordDetail eachDetails in patientRecords.Where(x => x.Record.CreateTime > DateTime.Now.Date && x.Record.CreateTime <= DateTime.Now.AddDays(1).Date))
+        {
+            <div class="showServiceRecord" style="background-color: rgb(@eachDetails.Record.ServiceItem.ColorR,@eachDetails.Record.ServiceItem.ColorG,@eachDetails.Record.ServiceItem.ColorB);">
+                <div class="showServiceName">@eachDetails.Record.ServiceItem.ServiceName</div>
+                <div class="showAllRecords">
+                    @showDetailsAnswer(eachDetails.Record, eachDetails.Record.ServiceItem)
+                </div>
+            </div>
+        }
+    }
+    @helper showAnswerByCategory(List<ServiceItem> itemsData, int currentPatientID)
+    {
+        foreach (ServiceItem eachService in itemsData.Where(x => x.ServiceID != 1))
+        {
+            var records = DatabaseFunction.orderbyRecordByTime(eachService.Records.Where(x => x.PatientID == currentPatientID && x.CreateTime > DateTime.Now.Date && x.CreateTime <= DateTime.Now.AddDays(1).Date).ToList());
+            if (records.Count() == 0)
+            {
+                continue;
+            }
+            <div class="showServiceRecord" style="background-color: rgb(@eachService.ColorR,@eachService.ColorG,@eachService.ColorB);">
+                <div class="showServiceName">@eachService.ServiceName</div>
+                <div class="showAllRecords">
+                    @{
+                        /*
+                        var records = DatabaseFunction.orderbyRecordByTime(eachService.Records.Where(x => x.PatientID == currentPatientID && x.CreateTime > DateTime.Now.Date && x.CreateTime <= DateTime.Now.AddDays(1).Date).ToList());
+                        if (records.Count() == 0)
+                        {
+                            <div class="noRecord">今日無資料</div>
+                        }
+                        */
+                        int counter = 0;
+                    }
+                    @foreach (Record rr in records)
+                    {
+
+                        <div>@showDetailsAnswer(rr, eachService)</div>
+
+                        if (records.Count() - 1 != counter)
+                        {
+                            <div class="recordBar" style="background-color: rgb(@eachService.ColorR,@eachService.ColorG,@eachService.ColorB);"></div>
+                        }
+                        counter++;
+                    }
+                </div>
+            </div>
+        }
+    }
+
+    @helper showDetailsAnswer(Record rr, ServiceItem eachService)
+    {
+        <div class="showEachRecord" serviceID="@rr.ServiceID" recordID="@rr.RecordID" record="@Json.Encode(rr.clone())">
+            @switch (eachService.ServiceID)
+            {
+                case 2:
+                    <div>@rr.RecordDetails.Where(x => x.QuestionID == 1).FirstOrDefault().TextAnswer</div>
+                    <div class="verticalBar" style="background-color:rgb(@eachService.ColorR,@eachService.ColorG,@eachService.ColorB);"></div>
+                    <div>
+                        <div>理想</div>
+                        <div>10</div>
+                    </div>
+                    <div class="verticalBar" style="background-color:rgb(@eachService.ColorR,@eachService.ColorG,@eachService.ColorB);"></div>
+                    <div>
+                        <div>
+                            <div>實際</div>
+                            <div>@rr.RecordDetails.Where(x => x.QuestionID == 3).FirstOrDefault().TextAnswer</div>
+                        </div>
+                    </div>
+                    <div class="verticalBar" style="background-color:rgb(@eachService.ColorR,@eachService.ColorG,@eachService.ColorB);"></div>
+                    var notes = rr.RecordDetails.Where(x => x.QuestionID == 4).FirstOrDefault().TextAnswer;
+
+                    <div class="otherActions">
+                        <a tabindex="0" class="expandDot removeA" recordID="@rr.RecordID" role="button" data-toggle="popover" data-trigger="focus" title="">
+                            <img src="~/Images/three_dot.png" />
+                        </a>
+                        @showMedicine("午餐飯前\n心血管疾病類:3類\n保健食品類:2顆", rr.RecordID)
+                    </div>
+                    if (notes != null && notes != "")
+                    {
+                        @showNote(notes, rr.RecordID)
+                    }
+                    break;
+                case 3:
+                    <div>@rr.RecordDetails.Where(x => x.QuestionID == 5).FirstOrDefault().TextAnswer</div>
+                    <div class="verticalBar" style="background-color:rgb(@eachService.ColorR,@eachService.ColorG,@eachService.ColorB);"></div>
+                    <div>@rr.RecordDetails.Where(x => x.QuestionID == 6).FirstOrDefault().TextAnswer cc</div>
+                    notes = rr.RecordDetails.Where(x => x.QuestionID == 7).FirstOrDefault().TextAnswer;
+                    <div class="otherActions">
+                        @if (notes != null && notes != "")
+                        {
+                            <img src="~/Images/three_dot.png" class="notesBtns" recordID="@rr.RecordID" />
+                            @showNote(notes, rr.RecordID)
+                        }
+
+                    </div>
+                    break;
+                case 4:
+                    <div>@rr.RecordDetails.Where(x => x.QuestionID == 8).FirstOrDefault().TextAnswer</div>
+                    <div class="verticalBar" style="background-color:rgb(@eachService.ColorR,@eachService.ColorG,@eachService.ColorB);"></div>
+                    <div>
+                        @foreach (RecordDetailsOption chooseOption in rr.RecordDetails.Where(x => x.QuestionID == 9).FirstOrDefault().RecordDetailsOptions)
+                        {
+                            <span>@chooseOption.QuestionOption.OptionName</span>
+                        }
+
+                    </div>
+                    notes = rr.RecordDetails.Where(x => x.QuestionID == 10).FirstOrDefault().TextAnswer;
+                    <div class="otherActions">
+                        @if (notes != null && notes != "")
+                        {
+                            <img src="~/Images/three_dot.png" class="notesBtns" recordID="@rr.RecordID" />
+                            @showNote(notes, rr.RecordID)
+                        }
+
+                    </div>
+                    break;
+                case 5:
+                    <div>@rr.RecordDetails.Where(x => x.QuestionID == 14).FirstOrDefault().TextAnswer</div>
+                    <div class="verticalBar" style="background-color:rgb(@eachService.ColorR,@eachService.ColorG,@eachService.ColorB);"></div>
+                    <div>@rr.RecordDetails.Where(x => x.QuestionID == 15).FirstOrDefault().TextAnswer cc</div>
+                    notes = rr.RecordDetails.Where(x => x.QuestionID == 16).FirstOrDefault().TextAnswer;
+                    <div class="otherActions">
+                        @if (notes != null && notes != "")
+                        {
+                            <img src="~/Images/three_dot.png" class="notesBtns" recordID="@rr.RecordID" />
+                            @showNote(notes, rr.RecordID)
+                        }
+
+                    </div>
+                    break;
+                case 6:
+                    <div>@rr.RecordDetails.Where(x => x.QuestionID == 17).FirstOrDefault().TextAnswer</div>
+                    <div class="verticalBar" style="background-color:rgb(@eachService.ColorR,@eachService.ColorG,@eachService.ColorB);"></div>
+                    <div>
+                        @foreach (RecordDetailsOption chooseOption in rr.RecordDetails.Where(x => x.QuestionID == 18).FirstOrDefault().RecordDetailsOptions)
+                        {
+                            <span>@chooseOption.QuestionOption.OptionName</span>
+                        }
+                    </div>
+                    <div class="verticalBar" style="background-color:rgb(@eachService.ColorR,@eachService.ColorG,@eachService.ColorB);"></div>
+                    <div>
+                        <div>用量</div>
+                        @foreach (RecordDetailsOption chooseOption in rr.RecordDetails.Where(x => x.QuestionID == 19).FirstOrDefault().RecordDetailsOptions)
+                        {
+                            <div>@chooseOption.QuestionOption.OptionName</div>
+                        }
+
+                    </div>
+                    notes = rr.RecordDetails.Where(x => x.QuestionID == 20).FirstOrDefault().TextAnswer;
+                    <div class="otherActions">
+                        @if (notes != null && notes != "")
+                        {
+                            <img src="~/Images/three_dot.png" class="notesBtns" recordID="@rr.RecordID" />
+                            @showNote(notes, rr.RecordID)
+                        }
+
+                    </div>
+                    break;
+                case 7:
+                    <div>@rr.RecordDetails.Where(x => x.QuestionID == 21).FirstOrDefault().TextAnswer</div>
+                    <div class="verticalBar" style="background-color:rgb(@eachService.ColorR,@eachService.ColorG,@eachService.ColorB);"></div>
+                    <div>
+                        <div>用量</div>
+                        @foreach (RecordDetailsOption chooseOption in rr.RecordDetails.Where(x => x.QuestionID == 22).FirstOrDefault().RecordDetailsOptions)
+                        {
+                            <div>@chooseOption.QuestionOption.OptionName</div>
+                        }
+
+                    </div>
+                    notes = rr.RecordDetails.Where(x => x.QuestionID == 23).FirstOrDefault().TextAnswer;
+                    <div class="otherActions">
+                        @if (notes != null && notes != "")
+                        {
+                            <img src="~/Images/three_dot.png" class="notesBtns" recordID="@rr.RecordID" />
+                            @showNote(notes, rr.RecordID)
+                        }
+
+                    </div>
+                    break;
+                case 8:
+                    <div>@rr.RecordDetails.Where(x => x.QuestionID == 24).FirstOrDefault().TextAnswer</div>
+                    <div class="verticalBar" style="background-color:rgb(@eachService.ColorR,@eachService.ColorG,@eachService.ColorB);"></div>
+                    <div>
+                        @foreach (RecordDetailsOption chooseOption in rr.RecordDetails.Where(x => x.QuestionID == 25).FirstOrDefault().RecordDetailsOptions)
+                        {
+                            <span>@chooseOption.QuestionOption.OptionName</span>
+                        }
+
+                    </div>
+                    notes = rr.RecordDetails.Where(x => x.QuestionID == 26).FirstOrDefault().TextAnswer;
+                    <div class="otherActions">
+                        @if (notes != null && notes != "")
+                        {
+                            <img src="~/Images/three_dot.png" class="notesBtns" recordID="@rr.RecordID" />
+                            @showNote(notes, rr.RecordID)
+                        }
+
+                    </div>
+                    break;
+                case 9:
+                    <div>@rr.RecordDetails.Where(x => x.QuestionID == 27).FirstOrDefault().TextAnswer</div>
+                    <div class="verticalBar" style="background-color:rgb(@eachService.ColorR,@eachService.ColorG,@eachService.ColorB);"></div>
+                    <div>
+                        @foreach (RecordDetailsOption chooseOption in rr.RecordDetails.Where(x => x.QuestionID == 28).FirstOrDefault().RecordDetailsOptions)
+                        {
+                            <span>@chooseOption.QuestionOption.OptionName</span>
+                        }
+                    </div>
+                    notes = rr.RecordDetails.Where(x => x.QuestionID == 29).FirstOrDefault().TextAnswer;
+                    <div class="otherActions">
+                        @if (notes != null && notes != "")
+                        {
+                            <img src="~/Images/three_dot.png" class="notesBtns" recordID="@rr.RecordID" />
+                            @showNote(notes, rr.RecordID)
+                        }
+
+                    </div>
+                    break;
+                case 10:
+                    <div>@rr.RecordDetails.Where(x => x.QuestionID == 30).FirstOrDefault().TextAnswer</div>
+                    <div class="verticalBar" style="background-color:rgb(@eachService.ColorR,@eachService.ColorG,@eachService.ColorB);"></div>
+                    <div>
+                        <div>體溫</div>
+                        <div>收縮壓</div>
+                        <div>舒張壓</div>
+                        <div>脈搏</div>
+                    </div>
+                    <div class="verticalBar" style="background-color:rgb(@eachService.ColorR,@eachService.ColorG,@eachService.ColorB);"></div>
+                    <div>
+                        <div>@rr.RecordDetails.Where(x => x.QuestionID == 31).FirstOrDefault().TextAnswer</div>
+                        <div>@rr.RecordDetails.Where(x => x.QuestionID == 32).FirstOrDefault().TextAnswer</div>
+                        <div>@rr.RecordDetails.Where(x => x.QuestionID == 33).FirstOrDefault().TextAnswer</div>
+                        <div>@rr.RecordDetails.Where(x => x.QuestionID == 34).FirstOrDefault().TextAnswer</div>
+                    </div>
+                    notes = rr.RecordDetails.Where(x => x.QuestionID == 35).FirstOrDefault().TextAnswer;
+                    <div class="otherActions">
+                        @if (notes != null && notes != "")
+                        {
+                            <img src="~/Images/three_dot.png" class="notesBtns" recordID="@rr.RecordID" />
+                            @showNote(notes, rr.RecordID)
+                        }
+
+                    </div>
+                    break;
+                case 11:
+                    <div>@rr.RecordDetails.Where(x => x.QuestionID == 36).FirstOrDefault().TextAnswer</div>
+                    <div class="verticalBar" style="background-color:rgb(@eachService.ColorR,@eachService.ColorG,@eachService.ColorB);"></div>
+                    <div>
+                        @foreach (RecordDetailsOption chooseOption in rr.RecordDetails.Where(x => x.QuestionID == 37).FirstOrDefault().RecordDetailsOptions)
+                        {
+                            <span>@chooseOption.QuestionOption.OptionName</span>
+                        }
+                    </div>
+                    <div class="verticalBar" style="background-color:rgb(@eachService.ColorR,@eachService.ColorG,@eachService.ColorB);"></div>
+                    <div>
+                        @foreach (RecordDetailsOption chooseOption in rr.RecordDetails.Where(x => x.QuestionID == 38).FirstOrDefault().RecordDetailsOptions)
+                        {
+                            <span>@chooseOption.QuestionOption.OptionName</span>
+                        }
+                    </div>
+                    notes = rr.RecordDetails.Where(x => x.QuestionID == 39).FirstOrDefault().TextAnswer;
+                    <div class="otherActions">
+                        @if (notes != null && notes != "")
+                        {
+                            <img src="~/Images/three_dot.png" class="notesBtns" recordID="@rr.RecordID" />
+                            @showNote(notes, rr.RecordID)
+                        }
+
+                    </div>
+
+                    break;
+            }
+
+        </div>
+    }
+    @helper showMedicine(String note, int recordID)
+    {
+        note = note.Replace("\n", "<br/>");
+        <form class="medicineForm recordForm" recordID="@recordID">
+            <div class="recordFormOuterDiv">
+                <div class="recordDiv">
+                    <div class="title">用藥清單</div>
+                    <div class="bar"></div>
+                    <div class="notes">@Html.Raw(note)</div>
+                </div>
+                <div>
+                    <div class="addActionBtns">
+                        <input type="button" class="addBtn cancelBtn" value="確認" />
+                    </div>
+                </div>
+            </div>
+        </form>
+    }
+    @helper showNote(String note, int recordID)
+    {
+        note = note.Replace("\n", "<br/>");
+        <form class="noteForm recordForm" recordID="@recordID">
+            <div class="recordFormOuterDiv">
+                <div class="recordDiv">
+                    <div class="title">備註與紀錄</div>
+                    <div class="bar"></div>
+                    <div class="notes">@Html.Raw(note)</div>
+                </div>
+                <div>
+                    <div class="addActionBtns">
+                        <input type="button" class="addBtn cancelBtn" value="確認" />
+                    </div>
+                </div>
+            </div>
+        </form>
+    }
+    @helper createQuestions(ServiceItem eachItem, String type)
+    {
+        <table>
+            @foreach (Question eachQuestion in eachItem.Questions.OrderBy(x => x.Order))
+            {
+                <tr>
+                    <td style="width:25%;">@eachQuestion.QuestionName</td>
+                    <td style="width:71%;">
+                        @{
+                            switch (eachQuestion.Type.Trim())
+                            {
+                                case "text":
+                                    <input type="@eachQuestion.TextType" class="myInput2" @(eachQuestion.Required == 1 ? "required" : "") textBox="true" QuestionID="@(eachQuestion.QuestionID)" />
+                                    break;
+                                case "select":
+                                    <select class="myInput2" QuestionID="@(eachQuestion.QuestionID)">
+                                        @foreach (QuestionOption eachOption in eachQuestion.QuestionOptions)
+                                        {
+                                            <option optionID="@eachOption.OptionID" value="@eachOption.OptionID">@eachOption.OptionName</option>
+                                        }
+                                    </select>
+                                    break;
+                                case "textarea":
+                                    <textarea rows="5" class="myInput2 verticalResize" @(eachQuestion.Required == 1 ? "required" : "") QuestionID="@(eachQuestion.QuestionID)"></textarea>
+                                    break;
+                                case "checkbox":
+                                    <div class="optionsDiv" multipleOptions="true" QuestionID="@eachQuestion.QuestionID">
+                                        @foreach (QuestionOption eachOption in eachQuestion.QuestionOptions)
+                                        {
+                                            <div>
+                                                <input type="checkbox" optionID="@eachOption.OptionID" id="options@(type)@(eachOption.OptionID)" value="@(eachOption.OptionID)" name="question@(eachOption.QuestionID)" />
+                                                <label class="optionName" for="options@(type)@(eachOption.OptionID)">@eachOption.OptionName</label>
+                                            </div>
+                                        }
+                                    </div>
+                                    break;
+                                case "radio":
+                                    <div class="optionsDiv" multipleOptions="true" QuestionID="@eachQuestion.QuestionID">
+                                        @foreach (QuestionOption eachOption in eachQuestion.QuestionOptions)
+                                        {
+                                            <div>
+                                                <input type="radio" optionID="@eachOption.OptionID" id="options@(type)@(eachOption.OptionID)" value="@(eachOption.OptionID)" name="question@(eachOption.QuestionID)" />
+                                                <label class="optionName" for="options@(type)@(eachOption.OptionID)">@eachOption.OptionName</label>
+                                            </div>
+                                        }
+                                    </div>
+                                    break;
+                            }
+                        }
+                    </td>
+                </tr>
+            }
+        </table>
+    }
+
+
+
+    @Html.Partial("Mask")
+    @Html.Partial("_loading")
+
+    <div class="transferOuterDiv">
+        <div class="transferDiv">
+            <div class="transferInnerDiv">
+                <div class="title">交班紀錄</div>
+                <div class="bar"></div>
+                @{
+                    var something = false;
+                }
+                @foreach (ServiceItem eachitem in itemsData.Where(x => x.ServiceID != 1))
+                {
+                    var isExist = false;
+                    var myRecords = eachitem.Records.Where(x => x.PatientID == currentPatientID && x.CreateTime > DateTime.Now.Date && x.CreateTime <= DateTime.Now.AddDays(1).Date);
+                    foreach (Record eachRecord in myRecords)
+                    {
+                        var myDetails = eachRecord.RecordDetails.Where(x => x.QuestionID == 4 || x.QuestionID == 7 || x.QuestionID == 10 || x.QuestionID == 16 || x.QuestionID == 20 || x.QuestionID == 23 || x.QuestionID == 26 || x.QuestionID == 29 || x.QuestionID == 35 || x.QuestionID == 39).ToList();
+                        foreach (RecordDetail eachDetails in myDetails)
+                        {
+                            if (eachDetails.TextAnswer != null && eachDetails.TextAnswer.Trim() != "")
+                            {
+                                isExist = true;
+                                something = true;
+                                break;
+                            }
+                        }
+                        if (isExist)
+                        {
+                            break;
+                        }
+                    }
+                    if (!isExist)
+                    {
+                        continue;
+                    }
+
+
+                    <div class="serviceName" style="background-color:rgb(@eachitem.ColorR,@eachitem.ColorG,@eachitem.ColorB)">@eachitem.ServiceName</div>
+                    <div class="noteDetails">
+                        <ul>
+                            @foreach (Record eachRecord in DatabaseFunction.orderbyRecordByTime(myRecords.ToList()))
+                            {
+                                var myDetails = eachRecord.RecordDetails.Where(x => x.QuestionID == 4 || x.QuestionID == 7 || x.QuestionID == 10 || x.QuestionID == 16 || x.QuestionID == 20 || x.QuestionID == 23 || x.QuestionID == 26 || x.QuestionID == 29 || x.QuestionID == 35 || x.QuestionID == 39).ToList();
+                                foreach (RecordDetail eachDetails in myDetails)
+                                {
+                                    if (eachDetails.TextAnswer != null && eachDetails.TextAnswer.Trim() != "")
+                                    {
+                                        <li>(@(eachRecord.Employee.Name))@eachDetails.TextAnswer</li>
+                                    }
+
+                                }
+                            }
+                            @if (myRecords.Count() == 0)
+                            {
+                                <li>無紀錄</li>
+                            }
+                        </ul>
+                    </div>
+                }
+                @if (!something)
+                {
+                    <div style="margin:10px;text-align:center;">無交接紀錄</div>
+                }
+            </div>
+            <div>
+                <div class="transferActionBtns">
+                    <input type="button" class="transferBtn cancelBtn" value="我知道了" />
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    @foreach (ServiceItem eachItem in itemsData.Where(x => x.ServiceID != 1))
+    {
+        <form class="addRecordForm recordForm" serviceID="@eachItem.ServiceID">
+            <div class="recordFormOuterDiv">
+                <div class="recordDiv">
+                    <div class="title">新增@(eachItem.ServiceName)紀錄</div>
+                    <div class="bar"></div>
+                    @createQuestions(eachItem, "insert")
+                </div>
+                <div>
+                    <div class="addActionBtns">
+                        <input type="button" class="addBtn cancelBtn" value="取消" />
+                        <input type="button" class="addBtn addSubmitBtn" serviceID="@eachItem.ServiceID" value="新增" />
+                    </div>
+                </div>
+            </div>
+        </form>
+    }
+    @foreach (ServiceItem eachItem in itemsData.Where(x => x.ServiceID != 1))
+    {
+        <form class="editRecordForm recordForm" serviceID="@eachItem.ServiceID">
+            <div class="recordFormOuterDiv">
+                <div class="recordDiv">
+                    <div class="title">編輯@(eachItem.ServiceName)紀錄</div>
+                    <div class="bar"></div>
+                    @createQuestions(eachItem, "edit")
+                </div>
+                <div>
+                    <div class="editActionBtns">
+                        <input type="button" class="editBtn cancelBtn" value="取消" />
+                        <input type="button" class="editBtn editSubmitBtn" serviceID="@eachItem.ServiceID" value="更新" />
+                    </div>
+                    <div class="editActionBtns">
+                        <input type="button" class="editBtn deleteBtn" serviceID="@eachItem.ServiceID" value="刪除此筆資料" />
+                    </div>
+                </div>
+            </div>
+        </form>
+    }
+</body>
+</html>

@@ -1,0 +1,724 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<edmx:Edmx Version="3.0" xmlns:edmx="http://schemas.microsoft.com/ado/2009/11/edmx">
+  <!-- EF Runtime content -->
+  <edmx:Runtime>
+    <!-- SSDL content -->
+    <edmx:StorageModels>
+    <Schema Namespace="SunCareModel.Store" Provider="System.Data.SqlClient" ProviderManifestToken="2012" Alias="Self" xmlns:store="http://schemas.microsoft.com/ado/2007/12/edm/EntityStoreSchemaGenerator" xmlns:customannotation="http://schemas.microsoft.com/ado/2013/11/edm/customannotation" xmlns="http://schemas.microsoft.com/ado/2009/11/edm/ssdl">
+        <EntityType Name="Employee">
+          <Key>
+            <PropertyRef Name="EmployeeID" />
+          </Key>
+          <Property Name="EmployeeID" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
+          <Property Name="Name" Type="nvarchar" MaxLength="50" Nullable="false" />
+          <Property Name="Account" Type="nvarchar" MaxLength="50" Nullable="false" />
+          <Property Name="Password" Type="nvarchar" MaxLength="50" Nullable="false" />
+          <Property Name="CreateTime" Type="datetime" Nullable="false" />
+        </EntityType>
+        <EntityType Name="Patient">
+          <Key>
+            <PropertyRef Name="PatientID" />
+          </Key>
+          <Property Name="PatientID" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
+          <Property Name="Name" Type="nvarchar" MaxLength="50" Nullable="false" />
+          <Property Name="CreateTime" Type="datetime" Nullable="false" />
+          <Property Name="PID" Type="nvarchar" MaxLength="50" />
+          <Property Name="CaseID" Type="nvarchar" MaxLength="50" />
+          <Property Name="Gender" Type="int" />
+          <Property Name="Birthday" Type="date" />
+        </EntityType>
+        <EntityType Name="PatientThreshold">
+          <Key>
+            <PropertyRef Name="ThresholdID" />
+          </Key>
+          <Property Name="ThresholdID" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
+          <Property Name="ThresholdTag" Type="int" Nullable="false" />
+          <Property Name="ThresholdValue" Type="nvarchar" MaxLength="500" Nullable="false" />
+          <Property Name="ThresholdRange" Type="nvarchar" MaxLength="500" />
+          <Property Name="OptionID" Type="int" Nullable="false" />
+          <Property Name="PatientID" Type="int" Nullable="false" />
+        </EntityType>
+        <EntityType Name="Question">
+          <Key>
+            <PropertyRef Name="QuestionID" />
+          </Key>
+          <Property Name="QuestionID" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
+          <Property Name="QuestionName" Type="nvarchar" MaxLength="500" Nullable="false" />
+          <Property Name="Type" Type="nvarchar" MaxLength="50" Nullable="false" />
+          <Property Name="ServiceID" Type="int" Nullable="false" />
+          <Property Name="Required" Type="int" Nullable="false" />
+          <Property Name="Order" Type="int" />
+          <Property Name="TextType" Type="nvarchar" MaxLength="50" />
+          <Property Name="Min" Type="int" Nullable="false" />
+          <Property Name="Max" Type="int" Nullable="false" />
+        </EntityType>
+        <EntityType Name="QuestionOption">
+          <Key>
+            <PropertyRef Name="OptionID" />
+          </Key>
+          <Property Name="OptionID" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
+          <Property Name="OptionName" Type="nvarchar" MaxLength="50" Nullable="false" />
+          <Property Name="QuestionID" Type="int" Nullable="false" />
+        </EntityType>
+        <EntityType Name="Record">
+          <Key>
+            <PropertyRef Name="RecordID" />
+          </Key>
+          <Property Name="RecordID" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
+          <Property Name="PatientID" Type="int" Nullable="false" />
+          <Property Name="ServiceID" Type="int" Nullable="false" />
+          <Property Name="CreateTime" Type="datetime" Nullable="false" />
+          <Property Name="EmployeeID" Type="int" Nullable="false" />
+        </EntityType>
+        <EntityType Name="RecordDetails">
+          <Key>
+            <PropertyRef Name="AnswerID" />
+          </Key>
+          <Property Name="AnswerID" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
+          <Property Name="QuestionID" Type="int" Nullable="false" />
+          <Property Name="TextAnswer" Type="nvarchar" MaxLength="500" />
+          <Property Name="RecordID" Type="int" Nullable="false" />
+        </EntityType>
+        <EntityType Name="RecordDetailsOptions">
+          <Key>
+            <PropertyRef Name="RecordDetailsOptionID" />
+          </Key>
+          <Property Name="AnswerID" Type="int" Nullable="false" />
+          <Property Name="OptionID" Type="int" Nullable="false" />
+          <Property Name="RecordDetailsOptionID" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
+        </EntityType>
+        <EntityType Name="ServiceItem">
+          <Key>
+            <PropertyRef Name="ServiceID" />
+          </Key>
+          <Property Name="ServiceID" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
+          <Property Name="ServiceName" Type="nvarchar" MaxLength="50" Nullable="false" />
+          <Property Name="ColorR" Type="int" />
+          <Property Name="ColorG" Type="int" />
+          <Property Name="ColorB" Type="int" />
+          <Property Name="Image" Type="nvarchar" MaxLength="500" />
+        </EntityType>
+        <EntityType Name="sysdiagrams">
+          <Key>
+            <PropertyRef Name="diagram_id" />
+          </Key>
+          <Property Name="name" Type="nvarchar" MaxLength="128" Nullable="false" />
+          <Property Name="principal_id" Type="int" Nullable="false" />
+          <Property Name="diagram_id" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
+          <Property Name="version" Type="int" />
+          <Property Name="definition" Type="varbinary(max)" />
+        </EntityType>
+        <Association Name="FK_PatientThreshold_Patient">
+          <End Role="Patient" Type="Self.Patient" Multiplicity="1" />
+          <End Role="PatientThreshold" Type="Self.PatientThreshold" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="Patient">
+              <PropertyRef Name="PatientID" />
+            </Principal>
+            <Dependent Role="PatientThreshold">
+              <PropertyRef Name="PatientID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_Question_ServiceItem">
+          <End Role="ServiceItem" Type="Self.ServiceItem" Multiplicity="1" />
+          <End Role="Question" Type="Self.Question" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="ServiceItem">
+              <PropertyRef Name="ServiceID" />
+            </Principal>
+            <Dependent Role="Question">
+              <PropertyRef Name="ServiceID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_QuestionOption_Question">
+          <End Role="Question" Type="Self.Question" Multiplicity="1" />
+          <End Role="QuestionOption" Type="Self.QuestionOption" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="Question">
+              <PropertyRef Name="QuestionID" />
+            </Principal>
+            <Dependent Role="QuestionOption">
+              <PropertyRef Name="QuestionID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_Record_Employee">
+          <End Role="Employee" Type="Self.Employee" Multiplicity="1" />
+          <End Role="Record" Type="Self.Record" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="Employee">
+              <PropertyRef Name="EmployeeID" />
+            </Principal>
+            <Dependent Role="Record">
+              <PropertyRef Name="EmployeeID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_Record_Patient">
+          <End Role="Patient" Type="Self.Patient" Multiplicity="1" />
+          <End Role="Record" Type="Self.Record" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="Patient">
+              <PropertyRef Name="PatientID" />
+            </Principal>
+            <Dependent Role="Record">
+              <PropertyRef Name="PatientID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_Record_ServiceItem">
+          <End Role="ServiceItem" Type="Self.ServiceItem" Multiplicity="1" />
+          <End Role="Record" Type="Self.Record" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="ServiceItem">
+              <PropertyRef Name="ServiceID" />
+            </Principal>
+            <Dependent Role="Record">
+              <PropertyRef Name="ServiceID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_RecordDetails_Question">
+          <End Role="Question" Type="Self.Question" Multiplicity="1" />
+          <End Role="RecordDetails" Type="Self.RecordDetails" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="Question">
+              <PropertyRef Name="QuestionID" />
+            </Principal>
+            <Dependent Role="RecordDetails">
+              <PropertyRef Name="QuestionID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_RecordDetails_Record">
+          <End Role="Record" Type="Self.Record" Multiplicity="1" />
+          <End Role="RecordDetails" Type="Self.RecordDetails" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="Record">
+              <PropertyRef Name="RecordID" />
+            </Principal>
+            <Dependent Role="RecordDetails">
+              <PropertyRef Name="RecordID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_RecordDetailsOptions_QuestionOption">
+          <End Role="QuestionOption" Type="Self.QuestionOption" Multiplicity="1" />
+          <End Role="RecordDetailsOptions" Type="Self.RecordDetailsOptions" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="QuestionOption">
+              <PropertyRef Name="OptionID" />
+            </Principal>
+            <Dependent Role="RecordDetailsOptions">
+              <PropertyRef Name="OptionID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_RecordDetailsOptions_RecordDetails">
+          <End Role="RecordDetails" Type="Self.RecordDetails" Multiplicity="1" />
+          <End Role="RecordDetailsOptions" Type="Self.RecordDetailsOptions" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="RecordDetails">
+              <PropertyRef Name="AnswerID" />
+            </Principal>
+            <Dependent Role="RecordDetailsOptions">
+              <PropertyRef Name="AnswerID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <EntityContainer Name="SunCareModelStoreContainer">
+          <EntitySet Name="Employee" EntityType="Self.Employee" Schema="dbo" store:Type="Tables" />
+          <EntitySet Name="Patient" EntityType="Self.Patient" Schema="dbo" store:Type="Tables" />
+          <EntitySet Name="PatientThreshold" EntityType="Self.PatientThreshold" Schema="dbo" store:Type="Tables" />
+          <EntitySet Name="Question" EntityType="Self.Question" Schema="dbo" store:Type="Tables" />
+          <EntitySet Name="QuestionOption" EntityType="Self.QuestionOption" Schema="dbo" store:Type="Tables" />
+          <EntitySet Name="Record" EntityType="Self.Record" Schema="dbo" store:Type="Tables" />
+          <EntitySet Name="RecordDetails" EntityType="Self.RecordDetails" Schema="dbo" store:Type="Tables" />
+          <EntitySet Name="RecordDetailsOptions" EntityType="Self.RecordDetailsOptions" Schema="dbo" store:Type="Tables" />
+          <EntitySet Name="ServiceItem" EntityType="Self.ServiceItem" Schema="dbo" store:Type="Tables" />
+          <EntitySet Name="sysdiagrams" EntityType="Self.sysdiagrams" Schema="dbo" store:Type="Tables" />
+          <AssociationSet Name="FK_PatientThreshold_Patient" Association="Self.FK_PatientThreshold_Patient">
+            <End Role="Patient" EntitySet="Patient" />
+            <End Role="PatientThreshold" EntitySet="PatientThreshold" />
+          </AssociationSet>
+          <AssociationSet Name="FK_Question_ServiceItem" Association="Self.FK_Question_ServiceItem">
+            <End Role="ServiceItem" EntitySet="ServiceItem" />
+            <End Role="Question" EntitySet="Question" />
+          </AssociationSet>
+          <AssociationSet Name="FK_QuestionOption_Question" Association="Self.FK_QuestionOption_Question">
+            <End Role="Question" EntitySet="Question" />
+            <End Role="QuestionOption" EntitySet="QuestionOption" />
+          </AssociationSet>
+          <AssociationSet Name="FK_Record_Employee" Association="Self.FK_Record_Employee">
+            <End Role="Employee" EntitySet="Employee" />
+            <End Role="Record" EntitySet="Record" />
+          </AssociationSet>
+          <AssociationSet Name="FK_Record_Patient" Association="Self.FK_Record_Patient">
+            <End Role="Patient" EntitySet="Patient" />
+            <End Role="Record" EntitySet="Record" />
+          </AssociationSet>
+          <AssociationSet Name="FK_Record_ServiceItem" Association="Self.FK_Record_ServiceItem">
+            <End Role="ServiceItem" EntitySet="ServiceItem" />
+            <End Role="Record" EntitySet="Record" />
+          </AssociationSet>
+          <AssociationSet Name="FK_RecordDetails_Question" Association="Self.FK_RecordDetails_Question">
+            <End Role="Question" EntitySet="Question" />
+            <End Role="RecordDetails" EntitySet="RecordDetails" />
+          </AssociationSet>
+          <AssociationSet Name="FK_RecordDetails_Record" Association="Self.FK_RecordDetails_Record">
+            <End Role="Record" EntitySet="Record" />
+            <End Role="RecordDetails" EntitySet="RecordDetails" />
+          </AssociationSet>
+          <AssociationSet Name="FK_RecordDetailsOptions_QuestionOption" Association="Self.FK_RecordDetailsOptions_QuestionOption">
+            <End Role="QuestionOption" EntitySet="QuestionOption" />
+            <End Role="RecordDetailsOptions" EntitySet="RecordDetailsOptions" />
+          </AssociationSet>
+          <AssociationSet Name="FK_RecordDetailsOptions_RecordDetails" Association="Self.FK_RecordDetailsOptions_RecordDetails">
+            <End Role="RecordDetails" EntitySet="RecordDetails" />
+            <End Role="RecordDetailsOptions" EntitySet="RecordDetailsOptions" />
+          </AssociationSet>
+        </EntityContainer>
+      </Schema></edmx:StorageModels>
+    <!-- CSDL content -->
+    <edmx:ConceptualModels>
+      <Schema Namespace="SunCareModel" Alias="Self" annotation:UseStrongSpatialTypes="false" xmlns:annotation="http://schemas.microsoft.com/ado/2009/02/edm/annotation" xmlns:customannotation="http://schemas.microsoft.com/ado/2013/11/edm/customannotation" xmlns="http://schemas.microsoft.com/ado/2009/11/edm">
+        <EntityType Name="Employee">
+          <Key>
+            <PropertyRef Name="EmployeeID" />
+          </Key>
+          <Property Name="EmployeeID" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+          <Property Name="Name" Type="String" MaxLength="50" FixedLength="false" Unicode="true" Nullable="false" />
+          <Property Name="Account" Type="String" MaxLength="50" FixedLength="false" Unicode="true" Nullable="false" />
+          <Property Name="Password" Type="String" MaxLength="50" FixedLength="false" Unicode="true" Nullable="false" />
+          <Property Name="CreateTime" Type="DateTime" Nullable="false" Precision="3" />
+          <NavigationProperty Name="Records" Relationship="Self.FK_Record_Employee" FromRole="Employee" ToRole="Record" />
+        </EntityType>
+        <EntityType Name="Patient">
+          <Key>
+            <PropertyRef Name="PatientID" />
+          </Key>
+          <Property Name="PatientID" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+          <Property Name="Name" Type="String" MaxLength="50" FixedLength="false" Unicode="true" Nullable="false" />
+          <Property Name="CreateTime" Type="DateTime" Nullable="false" Precision="3" />
+          <Property Name="PID" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
+          <Property Name="CaseID" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
+          <Property Name="Gender" Type="Int32" />
+          <Property Name="Birthday" Type="DateTime" Precision="0" />
+          <NavigationProperty Name="Records" Relationship="Self.FK_Record_Patient" FromRole="Patient" ToRole="Record" />
+          <NavigationProperty Name="PatientThresholds" Relationship="SunCareModel.FK_PatientThreshold_Patient" FromRole="Patient" ToRole="PatientThreshold" />
+        </EntityType>
+        <EntityType Name="Question">
+          <Key>
+            <PropertyRef Name="QuestionID" />
+          </Key>
+          <Property Name="QuestionID" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+          <Property Name="QuestionName" Type="String" MaxLength="500" FixedLength="false" Unicode="true" Nullable="false" />
+          <Property Name="Type" Type="String" MaxLength="50" FixedLength="false" Unicode="true" Nullable="false" />
+          <Property Name="ServiceID" Type="Int32" Nullable="false" />
+          <Property Name="Required" Type="Int32" Nullable="false" />
+          <Property Name="Order" Type="Int32" />
+          <Property Name="TextType" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
+          <Property Name="Min" Type="Int32" Nullable="false" />
+          <Property Name="Max" Type="Int32" Nullable="false" />
+          <NavigationProperty Name="ServiceItem" Relationship="Self.FK_Question_ServiceItem" FromRole="Question" ToRole="ServiceItem" />
+          <NavigationProperty Name="QuestionOptions" Relationship="Self.FK_QuestionOption_Question" FromRole="Question" ToRole="QuestionOption" />
+          <NavigationProperty Name="RecordDetails" Relationship="Self.FK_RecordDetails_Question" FromRole="Question" ToRole="RecordDetails" />
+        </EntityType>
+        <EntityType Name="QuestionOption">
+          <Key>
+            <PropertyRef Name="OptionID" />
+          </Key>
+          <Property Name="OptionID" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+          <Property Name="OptionName" Type="String" MaxLength="50" FixedLength="false" Unicode="true" Nullable="false" />
+          <Property Name="QuestionID" Type="Int32" Nullable="false" />
+          <NavigationProperty Name="Question" Relationship="Self.FK_QuestionOption_Question" FromRole="QuestionOption" ToRole="Question" />
+          <NavigationProperty Name="RecordDetailsOptions" Relationship="Self.FK_RecordDetailsOptions_QuestionOption" FromRole="QuestionOption" ToRole="RecordDetailsOptions" />
+        </EntityType>
+        <EntityType Name="Record">
+          <Key>
+            <PropertyRef Name="RecordID" />
+          </Key>
+          <Property Name="RecordID" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+          <Property Name="PatientID" Type="Int32" Nullable="false" />
+          <Property Name="ServiceID" Type="Int32" Nullable="false" />
+          <Property Name="CreateTime" Type="DateTime" Nullable="false" Precision="3" />
+          <Property Name="EmployeeID" Type="Int32" Nullable="false" />
+          <NavigationProperty Name="Employee" Relationship="Self.FK_Record_Employee" FromRole="Record" ToRole="Employee" />
+          <NavigationProperty Name="Patient" Relationship="Self.FK_Record_Patient" FromRole="Record" ToRole="Patient" />
+          <NavigationProperty Name="ServiceItem" Relationship="Self.FK_Record_ServiceItem" FromRole="Record" ToRole="ServiceItem" />
+          <NavigationProperty Name="RecordDetails" Relationship="Self.FK_RecordDetails_Record" FromRole="Record" ToRole="RecordDetails" />
+        </EntityType>
+        <EntityType Name="RecordDetail">
+          <Key>
+            <PropertyRef Name="AnswerID" />
+          </Key>
+          <Property Name="AnswerID" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+          <Property Name="QuestionID" Type="Int32" Nullable="false" />
+          <Property Name="TextAnswer" Type="String" MaxLength="500" FixedLength="false" Unicode="true" />
+          <Property Name="RecordID" Type="Int32" Nullable="false" />
+          <NavigationProperty Name="Question" Relationship="Self.FK_RecordDetails_Question" FromRole="RecordDetails" ToRole="Question" />
+          <NavigationProperty Name="Record" Relationship="Self.FK_RecordDetails_Record" FromRole="RecordDetails" ToRole="Record" />
+          <NavigationProperty Name="RecordDetailsOptions" Relationship="Self.FK_RecordDetailsOptions_RecordDetails" FromRole="RecordDetails" ToRole="RecordDetailsOptions" />
+        </EntityType>
+        <EntityType Name="RecordDetailsOption">
+          <Key>
+            <PropertyRef Name="RecordDetailsOptionID" />
+          </Key>
+          <Property Name="AnswerID" Type="Int32" Nullable="false" />
+          <Property Name="OptionID" Type="Int32" Nullable="false" />
+          <Property Name="RecordDetailsOptionID" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+          <NavigationProperty Name="QuestionOption" Relationship="Self.FK_RecordDetailsOptions_QuestionOption" FromRole="RecordDetailsOptions" ToRole="QuestionOption" />
+          <NavigationProperty Name="RecordDetail" Relationship="Self.FK_RecordDetailsOptions_RecordDetails" FromRole="RecordDetailsOptions" ToRole="RecordDetails" />
+        </EntityType>
+        <EntityType Name="ServiceItem">
+          <Key>
+            <PropertyRef Name="ServiceID" />
+          </Key>
+          <Property Name="ServiceID" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+          <Property Name="ServiceName" Type="String" MaxLength="50" FixedLength="false" Unicode="true" Nullable="false" />
+          <Property Name="ColorR" Type="Int32" />
+          <Property Name="ColorG" Type="Int32" />
+          <Property Name="ColorB" Type="Int32" />
+          <Property Name="Image" Type="String" MaxLength="500" FixedLength="false" Unicode="true" />
+          <NavigationProperty Name="Questions" Relationship="Self.FK_Question_ServiceItem" FromRole="ServiceItem" ToRole="Question" />
+          <NavigationProperty Name="Records" Relationship="Self.FK_Record_ServiceItem" FromRole="ServiceItem" ToRole="Record" />
+        </EntityType>
+        <EntityType Name="sysdiagram">
+          <Key>
+            <PropertyRef Name="diagram_id" />
+          </Key>
+          <Property Name="name" Type="String" MaxLength="128" FixedLength="false" Unicode="true" Nullable="false" />
+          <Property Name="principal_id" Type="Int32" Nullable="false" />
+          <Property Name="diagram_id" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+          <Property Name="version" Type="Int32" />
+          <Property Name="definition" Type="Binary" MaxLength="Max" FixedLength="false" />
+        </EntityType>
+        <Association Name="FK_Record_Employee">
+          <End Role="Employee" Type="Self.Employee" Multiplicity="1" />
+          <End Role="Record" Type="Self.Record" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="Employee">
+              <PropertyRef Name="EmployeeID" />
+            </Principal>
+            <Dependent Role="Record">
+              <PropertyRef Name="EmployeeID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_Record_Patient">
+          <End Role="Patient" Type="Self.Patient" Multiplicity="1" />
+          <End Role="Record" Type="Self.Record" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="Patient">
+              <PropertyRef Name="PatientID" />
+            </Principal>
+            <Dependent Role="Record">
+              <PropertyRef Name="PatientID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_Question_ServiceItem">
+          <End Role="ServiceItem" Type="Self.ServiceItem" Multiplicity="1" />
+          <End Role="Question" Type="Self.Question" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="ServiceItem">
+              <PropertyRef Name="ServiceID" />
+            </Principal>
+            <Dependent Role="Question">
+              <PropertyRef Name="ServiceID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_QuestionOption_Question">
+          <End Role="Question" Type="Self.Question" Multiplicity="1" />
+          <End Role="QuestionOption" Type="Self.QuestionOption" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="Question">
+              <PropertyRef Name="QuestionID" />
+            </Principal>
+            <Dependent Role="QuestionOption">
+              <PropertyRef Name="QuestionID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_RecordDetails_Question">
+          <End Role="Question" Type="Self.Question" Multiplicity="1" />
+          <End Role="RecordDetails" Type="Self.RecordDetail" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="Question">
+              <PropertyRef Name="QuestionID" />
+            </Principal>
+            <Dependent Role="RecordDetails">
+              <PropertyRef Name="QuestionID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_RecordDetailsOptions_QuestionOption">
+          <End Role="QuestionOption" Type="Self.QuestionOption" Multiplicity="1" />
+          <End Role="RecordDetailsOptions" Type="Self.RecordDetailsOption" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="QuestionOption">
+              <PropertyRef Name="OptionID" />
+            </Principal>
+            <Dependent Role="RecordDetailsOptions">
+              <PropertyRef Name="OptionID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_Record_ServiceItem">
+          <End Role="ServiceItem" Type="Self.ServiceItem" Multiplicity="1" />
+          <End Role="Record" Type="Self.Record" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="ServiceItem">
+              <PropertyRef Name="ServiceID" />
+            </Principal>
+            <Dependent Role="Record">
+              <PropertyRef Name="ServiceID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_RecordDetails_Record">
+          <End Role="Record" Type="Self.Record" Multiplicity="1" />
+          <End Role="RecordDetails" Type="Self.RecordDetail" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="Record">
+              <PropertyRef Name="RecordID" />
+            </Principal>
+            <Dependent Role="RecordDetails">
+              <PropertyRef Name="RecordID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_RecordDetailsOptions_RecordDetails">
+          <End Role="RecordDetails" Type="Self.RecordDetail" Multiplicity="1" />
+          <End Role="RecordDetailsOptions" Type="Self.RecordDetailsOption" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="RecordDetails">
+              <PropertyRef Name="AnswerID" />
+            </Principal>
+            <Dependent Role="RecordDetailsOptions">
+              <PropertyRef Name="AnswerID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <EntityContainer Name="SunCareEntities" annotation:LazyLoadingEnabled="true">
+          <EntitySet Name="Employees" EntityType="Self.Employee" />
+          <EntitySet Name="Patients" EntityType="Self.Patient" />
+          <EntitySet Name="Questions" EntityType="Self.Question" />
+          <EntitySet Name="QuestionOptions" EntityType="Self.QuestionOption" />
+          <EntitySet Name="Records" EntityType="Self.Record" />
+          <EntitySet Name="RecordDetails" EntityType="Self.RecordDetail" />
+          <EntitySet Name="RecordDetailsOptions" EntityType="Self.RecordDetailsOption" />
+          <EntitySet Name="ServiceItems" EntityType="Self.ServiceItem" />
+          <EntitySet Name="sysdiagrams" EntityType="Self.sysdiagram" />
+          <AssociationSet Name="FK_Record_Employee" Association="Self.FK_Record_Employee">
+            <End Role="Employee" EntitySet="Employees" />
+            <End Role="Record" EntitySet="Records" />
+          </AssociationSet>
+          <AssociationSet Name="FK_Record_Patient" Association="Self.FK_Record_Patient">
+            <End Role="Patient" EntitySet="Patients" />
+            <End Role="Record" EntitySet="Records" />
+          </AssociationSet>
+          <AssociationSet Name="FK_Question_ServiceItem" Association="Self.FK_Question_ServiceItem">
+            <End Role="ServiceItem" EntitySet="ServiceItems" />
+            <End Role="Question" EntitySet="Questions" />
+          </AssociationSet>
+          <AssociationSet Name="FK_QuestionOption_Question" Association="Self.FK_QuestionOption_Question">
+            <End Role="Question" EntitySet="Questions" />
+            <End Role="QuestionOption" EntitySet="QuestionOptions" />
+          </AssociationSet>
+          <AssociationSet Name="FK_RecordDetails_Question" Association="Self.FK_RecordDetails_Question">
+            <End Role="Question" EntitySet="Questions" />
+            <End Role="RecordDetails" EntitySet="RecordDetails" />
+          </AssociationSet>
+          <AssociationSet Name="FK_RecordDetailsOptions_QuestionOption" Association="Self.FK_RecordDetailsOptions_QuestionOption">
+            <End Role="QuestionOption" EntitySet="QuestionOptions" />
+            <End Role="RecordDetailsOptions" EntitySet="RecordDetailsOptions" />
+          </AssociationSet>
+          <AssociationSet Name="FK_Record_ServiceItem" Association="Self.FK_Record_ServiceItem">
+            <End Role="ServiceItem" EntitySet="ServiceItems" />
+            <End Role="Record" EntitySet="Records" />
+          </AssociationSet>
+          <AssociationSet Name="FK_RecordDetails_Record" Association="Self.FK_RecordDetails_Record">
+            <End Role="Record" EntitySet="Records" />
+            <End Role="RecordDetails" EntitySet="RecordDetails" />
+          </AssociationSet>
+          <AssociationSet Name="FK_RecordDetailsOptions_RecordDetails" Association="Self.FK_RecordDetailsOptions_RecordDetails">
+            <End Role="RecordDetails" EntitySet="RecordDetails" />
+            <End Role="RecordDetailsOptions" EntitySet="RecordDetailsOptions" />
+          </AssociationSet>
+          <EntitySet Name="PatientThresholds" EntityType="SunCareModel.PatientThreshold" />
+          <AssociationSet Name="FK_PatientThreshold_Patient" Association="SunCareModel.FK_PatientThreshold_Patient">
+            <End Role="Patient" EntitySet="Patients" />
+            <End Role="PatientThreshold" EntitySet="PatientThresholds" />
+          </AssociationSet>
+        </EntityContainer>
+        <EntityType Name="PatientThreshold">
+          <Key>
+            <PropertyRef Name="ThresholdID" />
+          </Key>
+          <Property Name="ThresholdID" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+          <Property Name="ThresholdTag" Type="Int32" Nullable="false" />
+          <Property Name="ThresholdValue" Type="String" Nullable="false" MaxLength="500" FixedLength="false" Unicode="true" />
+          <Property Name="ThresholdRange" Type="String" MaxLength="500" FixedLength="false" Unicode="true" />
+          <Property Name="OptionID" Type="Int32" Nullable="false" />
+          <Property Name="PatientID" Type="Int32" Nullable="false" />
+          <NavigationProperty Name="Patient" Relationship="SunCareModel.FK_PatientThreshold_Patient" FromRole="PatientThreshold" ToRole="Patient" />
+        </EntityType>
+        <Association Name="FK_PatientThreshold_Patient">
+          <End Type="SunCareModel.Patient" Role="Patient" Multiplicity="1" />
+          <End Type="SunCareModel.PatientThreshold" Role="PatientThreshold" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="Patient">
+              <PropertyRef Name="PatientID" />
+            </Principal>
+            <Dependent Role="PatientThreshold">
+              <PropertyRef Name="PatientID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+      </Schema>
+    </edmx:ConceptualModels>
+    <!-- C-S mapping content -->
+    <edmx:Mappings>
+      <Mapping Space="C-S" xmlns="http://schemas.microsoft.com/ado/2009/11/mapping/cs">
+        <EntityContainerMapping StorageEntityContainer="SunCareModelStoreContainer" CdmEntityContainer="SunCareEntities">
+          <EntitySetMapping Name="Employees">
+            <EntityTypeMapping TypeName="SunCareModel.Employee">
+              <MappingFragment StoreEntitySet="Employee">
+                <ScalarProperty Name="EmployeeID" ColumnName="EmployeeID" />
+                <ScalarProperty Name="Name" ColumnName="Name" />
+                <ScalarProperty Name="Account" ColumnName="Account" />
+                <ScalarProperty Name="Password" ColumnName="Password" />
+                <ScalarProperty Name="CreateTime" ColumnName="CreateTime" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="Patients">
+            <EntityTypeMapping TypeName="SunCareModel.Patient">
+              <MappingFragment StoreEntitySet="Patient">
+                <ScalarProperty Name="PatientID" ColumnName="PatientID" />
+                <ScalarProperty Name="Name" ColumnName="Name" />
+                <ScalarProperty Name="CreateTime" ColumnName="CreateTime" />
+                <ScalarProperty Name="PID" ColumnName="PID" />
+                <ScalarProperty Name="CaseID" ColumnName="CaseID" />
+                <ScalarProperty Name="Gender" ColumnName="Gender" />
+                <ScalarProperty Name="Birthday" ColumnName="Birthday" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="Questions">
+            <EntityTypeMapping TypeName="SunCareModel.Question">
+              <MappingFragment StoreEntitySet="Question">
+                <ScalarProperty Name="QuestionID" ColumnName="QuestionID" />
+                <ScalarProperty Name="QuestionName" ColumnName="QuestionName" />
+                <ScalarProperty Name="Type" ColumnName="Type" />
+                <ScalarProperty Name="ServiceID" ColumnName="ServiceID" />
+                <ScalarProperty Name="Required" ColumnName="Required" />
+                <ScalarProperty Name="Order" ColumnName="Order" />
+                <ScalarProperty Name="TextType" ColumnName="TextType" />
+                <ScalarProperty Name="Min" ColumnName="Min" />
+                <ScalarProperty Name="Max" ColumnName="Max" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="QuestionOptions">
+            <EntityTypeMapping TypeName="SunCareModel.QuestionOption">
+              <MappingFragment StoreEntitySet="QuestionOption">
+                <ScalarProperty Name="OptionID" ColumnName="OptionID" />
+                <ScalarProperty Name="OptionName" ColumnName="OptionName" />
+                <ScalarProperty Name="QuestionID" ColumnName="QuestionID" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="Records">
+            <EntityTypeMapping TypeName="SunCareModel.Record">
+              <MappingFragment StoreEntitySet="Record">
+                <ScalarProperty Name="RecordID" ColumnName="RecordID" />
+                <ScalarProperty Name="PatientID" ColumnName="PatientID" />
+                <ScalarProperty Name="ServiceID" ColumnName="ServiceID" />
+                <ScalarProperty Name="CreateTime" ColumnName="CreateTime" />
+                <ScalarProperty Name="EmployeeID" ColumnName="EmployeeID" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="RecordDetails">
+            <EntityTypeMapping TypeName="SunCareModel.RecordDetail">
+              <MappingFragment StoreEntitySet="RecordDetails">
+                <ScalarProperty Name="AnswerID" ColumnName="AnswerID" />
+                <ScalarProperty Name="QuestionID" ColumnName="QuestionID" />
+                <ScalarProperty Name="TextAnswer" ColumnName="TextAnswer" />
+                <ScalarProperty Name="RecordID" ColumnName="RecordID" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="RecordDetailsOptions">
+            <EntityTypeMapping TypeName="SunCareModel.RecordDetailsOption">
+              <MappingFragment StoreEntitySet="RecordDetailsOptions">
+                <ScalarProperty Name="AnswerID" ColumnName="AnswerID" />
+                <ScalarProperty Name="OptionID" ColumnName="OptionID" />
+                <ScalarProperty Name="RecordDetailsOptionID" ColumnName="RecordDetailsOptionID" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="ServiceItems">
+            <EntityTypeMapping TypeName="SunCareModel.ServiceItem">
+              <MappingFragment StoreEntitySet="ServiceItem">
+                <ScalarProperty Name="ServiceID" ColumnName="ServiceID" />
+                <ScalarProperty Name="ServiceName" ColumnName="ServiceName" />
+                <ScalarProperty Name="ColorR" ColumnName="ColorR" />
+                <ScalarProperty Name="ColorG" ColumnName="ColorG" />
+                <ScalarProperty Name="ColorB" ColumnName="ColorB" />
+                <ScalarProperty Name="Image" ColumnName="Image" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="sysdiagrams">
+            <EntityTypeMapping TypeName="SunCareModel.sysdiagram">
+              <MappingFragment StoreEntitySet="sysdiagrams">
+                <ScalarProperty Name="name" ColumnName="name" />
+                <ScalarProperty Name="principal_id" ColumnName="principal_id" />
+                <ScalarProperty Name="diagram_id" ColumnName="diagram_id" />
+                <ScalarProperty Name="version" ColumnName="version" />
+                <ScalarProperty Name="definition" ColumnName="definition" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="PatientThresholds">
+            <EntityTypeMapping TypeName="SunCareModel.PatientThreshold">
+              <MappingFragment StoreEntitySet="PatientThreshold">
+                <ScalarProperty Name="PatientID" ColumnName="PatientID" />
+                <ScalarProperty Name="OptionID" ColumnName="OptionID" />
+                <ScalarProperty Name="ThresholdRange" ColumnName="ThresholdRange" />
+                <ScalarProperty Name="ThresholdValue" ColumnName="ThresholdValue" />
+                <ScalarProperty Name="ThresholdTag" ColumnName="ThresholdTag" />
+                <ScalarProperty Name="ThresholdID" ColumnName="ThresholdID" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+        </EntityContainerMapping>
+      </Mapping>
+    </edmx:Mappings>
+  </edmx:Runtime>
+  <!-- EF Designer content (DO NOT EDIT MANUALLY BELOW HERE) -->
+  <Designer xmlns="http://schemas.microsoft.com/ado/2009/11/edmx">
+    <Connection>
+      <DesignerInfoPropertySet>
+        <DesignerProperty Name="MetadataArtifactProcessing" Value="EmbedInOutputAssembly" />
+      </DesignerInfoPropertySet>
+    </Connection>
+    <Options>
+      <DesignerInfoPropertySet>
+        <DesignerProperty Name="ValidateOnBuild" Value="true" />
+        <DesignerProperty Name="EnablePluralization" Value="true" />
+        <DesignerProperty Name="IncludeForeignKeysInModel" Value="true" />
+        <DesignerProperty Name="UseLegacyProvider" Value="false" />
+        <DesignerProperty Name="CodeGenerationStrategy" Value="None" />
+      </DesignerInfoPropertySet>
+    </Options>
+    <!-- Diagram content (shape and connector positions) -->
+    <Diagrams></Diagrams>
+  </Designer>
+</edmx:Edmx>

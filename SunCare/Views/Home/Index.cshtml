@@ -1,0 +1,31 @@
+﻿@using SunCare.Models;
+@{
+    ViewBag.Title = "Home Page";
+}
+
+@section Scripts{
+    <script>
+        $(".allItemsDiv>div").mouseover(function () {
+            $(".allItemsDiv>div").css({ "transform": "scale(0.8)" });
+            $(this).css({ "transform": "scale(1)"});
+        });
+        $(".allItemsDiv>div").mouseout(function () {
+            $(".allItemsDiv>div").css({ "transform": "scale(1)" });
+        });
+    </script>
+}
+<div class="allItemsDiv">
+    
+    @foreach (ServiceItem eachItem in (List<ServiceItem>)ViewData["allItems"])
+    {
+        <div style="background-color:rgb(@eachItem.ColorR,@eachItem.ColorG,@eachItem.ColorB)" serviceID="@eachItem.ServiceID">
+            <a class="removeA eachItem" href="@Url.Action("CaseInfo","Home")">
+                <div>
+                    <div class="itemName">@eachItem.ServiceName</div>
+                    <img src="@eachItem.Image" />
+                </div>
+            </a>
+        </div>
+
+    }
+</div>
