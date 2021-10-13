@@ -320,6 +320,13 @@ body{
     transition: all 0.2s ease-in-out;
 }
 
+#abnormalImg {
+    height: 30%;
+    width: 30%;
+    top: 65%;
+    left: 20%;
+}
+
 
 .myOptions{
     display:flex;

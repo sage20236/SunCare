@@ -14,11 +14,7 @@ namespace SunCare.Controllers
     {
         public ActionResult Login()
         {
-            //return View();
-            String acc = Request.QueryString["acc"];
-            String pwd = Request.QueryString["pwd"];
-
-            return Login("aa", "aa");
+            return View();
         }
         [HttpPost]
         public ActionResult Login(String account, String password)
@@ -53,7 +49,6 @@ namespace SunCare.Controllers
         public ActionResult Index()
         {
             ViewData["allItems"] = DatabaseFunction.getAllServices();
-            ViewData["allAbnData"] = DatabaseFunction.getAllAbnormalByPatient();
             return View();
         }
 
@@ -64,14 +59,20 @@ namespace SunCare.Controllers
         public ActionResult CaseInfo()
         {
             ViewData["allItems"] = DatabaseFunction.getAllServices();
-            ViewData["allAbnData"] = DatabaseFunction.getAllAbnormalByPatient();
             //ViewData["patients"] = DatabaseFunction.getPatients();
             return View();
         }
+
         public ActionResult CasePartialPatient(int gender = -1)
         {
             return PartialView(DatabaseFunction.getPatients(gender));
         }
+
+        public ActionResult CaseAbnormalPatient(int abnormal = -1)
+        {
+            return PartialView(DatabaseFunction.getThreshold(abnormal));
+        }
+
         [Authorize]
         public ActionResult CaseEachInfo(String patientID, int orderby = 1)
         {

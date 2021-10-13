@@ -4,7 +4,7 @@
 @{
     Layout = null;
     var itemsData = (List<ServiceItem>)ViewData["allItems"];
-    var patientsData = (List<Patient>)ViewData["patients"];
+    var patientsData = (List<NewPatient>)ViewData["patients"];
     var currentPatientID = (int)ViewData["patientID"];
     var patientRecords = (List<RecordDetail>)ViewData["recordDetails"];
     var orderby = (int)ViewData["orderby"];
@@ -21,7 +21,7 @@
     @Scripts.Render("~/bundles/modernizr")
     @Scripts.Render("~/bundles/jquery")
     @Scripts.Render("~/bundles/bootstrap")
-<script>
+    <script>
         $(document).ready(function () {
 
             /*set popover service items*/
@@ -175,7 +175,7 @@
                 }
                 var submitAnswer = collectAnswer(serviceID, model,@(RegularFunction.getCurrentEmployeeID()),@((int)ViewData["patientID"]));
 
-                
+
 
                 $(this).prop("disabled", true);
                 return Swal.fire({
@@ -218,7 +218,7 @@
             /*change patient*/
 
             /*setting edit btn*/
-            
+
             $(".showEachRecord").click(function (e) {
                 e.stopPropagation();
                 var serviceID = $(this).attr("serviceID");
@@ -299,7 +299,7 @@
 
 
                 $(this).prop("disabled", true);
-                
+
                 return Swal.fire({
                     title: "確定要更新嗎",
                     text: "",
@@ -431,7 +431,7 @@
 
 
 
-</script>
+    </script>
     <style>
         .popover {
             max-width: 100%;
@@ -463,7 +463,7 @@
         <div class="caseBar caseBarPinned">
             <a href="@Url.Action("CaseInfo","Home")"><img src="~/Images/btn_Back.png" /></a>
             <select class="myInput2 bigger-font" id="patientSelector">
-                @foreach (Patient eachPatient in patientsData)
+                @foreach (NewPatient eachPatient in patientsData)
                 {
                     <option value="@(RegularFunction.encrypt(eachPatient.PatientID.ToString()))" @(eachPatient.PatientID == (int)ViewData["patientID"] ? "selected" : "")>@eachPatient.Name</option>
                 }
@@ -483,6 +483,7 @@
     {
         foreach (RecordDetail eachDetails in patientRecords.Where(x => x.Record.CreateTime > DateTime.Now.Date && x.Record.CreateTime <= DateTime.Now.AddDays(1).Date))
         {
+
             <div class="showServiceRecord" style="background-color: rgb(@eachDetails.Record.ServiceItem.ColorR,@eachDetails.Record.ServiceItem.ColorG,@eachDetails.Record.ServiceItem.ColorB);">
                 <div class="showServiceName">@eachDetails.Record.ServiceItem.ServiceName</div>
                 <div class="showAllRecords">
@@ -515,7 +516,6 @@
                     }
                     @foreach (Record rr in records)
                     {
-
                         <div>@showDetailsAnswer(rr, eachService)</div>
 
                         if (records.Count() - 1 != counter)
@@ -532,20 +532,27 @@
     @helper showDetailsAnswer(Record rr, ServiceItem eachService)
     {
         <div class="showEachRecord" serviceID="@rr.ServiceID" recordID="@rr.RecordID" record="@Json.Encode(rr.clone())">
+            @{
+                var a = rr.RecordDetails.Where(x => x.Abnormal == 1);
+            }
             @switch (eachService.ServiceID)
             {
+                // 用藥
                 case 2:
                     <div>@rr.RecordDetails.Where(x => x.QuestionID == 1).FirstOrDefault().TextAnswer</div>
                     <div class="verticalBar" style="background-color:rgb(@eachService.ColorR,@eachService.ColorG,@eachService.ColorB);"></div>
                     <div>
-                        <div>理想</div>
-                        <div>10</div>
+                        <div>
+                            @foreach (RecordDetailsOption chooseOption in rr.RecordDetails.Where(x => x.QuestionID == 2).FirstOrDefault().RecordDetailsOptions)
+                            {
+                                <span>@chooseOption.QuestionOption.OptionName</span>
+                            }
+                        </div>
                     </div>
                     <div class="verticalBar" style="background-color:rgb(@eachService.ColorR,@eachService.ColorG,@eachService.ColorB);"></div>
                     <div>
                         <div>
-                            <div>實際</div>
-                            <div>@rr.RecordDetails.Where(x => x.QuestionID == 3).FirstOrDefault().TextAnswer</div>
+                            <div>@rr.RecordDetails.Where(x => x.QuestionID == 3).FirstOrDefault().TextAnswer 顆</div>
                         </div>
                     </div>
                     <div class="verticalBar" style="background-color:rgb(@eachService.ColorR,@eachService.ColorG,@eachService.ColorB);"></div>
@@ -562,6 +569,7 @@
                         @showNote(notes, rr.RecordID)
                     }
                     break;
+                // 飲水
                 case 3:
                     <div>@rr.RecordDetails.Where(x => x.QuestionID == 5).FirstOrDefault().TextAnswer</div>
                     <div class="verticalBar" style="background-color:rgb(@eachService.ColorR,@eachService.ColorG,@eachService.ColorB);"></div>
@@ -573,18 +581,37 @@
                             <img src="~/Images/three_dot.png" class="notesBtns" recordID="@rr.RecordID" />
                             @showNote(notes, rr.RecordID)
                         }
-
                     </div>
                     break;
+                // 大便
                 case 4:
                     <div>@rr.RecordDetails.Where(x => x.QuestionID == 8).FirstOrDefault().TextAnswer</div>
                     <div class="verticalBar" style="background-color:rgb(@eachService.ColorR,@eachService.ColorG,@eachService.ColorB);"></div>
                     <div>
-                        @foreach (RecordDetailsOption chooseOption in rr.RecordDetails.Where(x => x.QuestionID == 9).FirstOrDefault().RecordDetailsOptions)
-                        {
-                            <span>@chooseOption.QuestionOption.OptionName</span>
-                        }
-
+                        <div>型態</div>
+                        <div>大便顏色</div>
+                        <div>處理者</div>
+                    </div>
+                    <div class="verticalBar" style="background-color:rgb(@eachService.ColorR,@eachService.ColorG,@eachService.ColorB);"></div>
+                    <div>
+                        <div>
+                            @foreach (RecordDetailsOption chooseOption in rr.RecordDetails.Where(x => x.QuestionID == 9).FirstOrDefault().RecordDetailsOptions)
+                            {
+                                <span>@chooseOption.QuestionOption.OptionName</span>
+                            }
+                        </div>
+                        <div>
+                            @foreach (RecordDetailsOption chooseOption in rr.RecordDetails.Where(x => x.QuestionID == 40).FirstOrDefault().RecordDetailsOptions)
+                            {
+                                <span>@chooseOption.QuestionOption.OptionName</span>
+                            }
+                        </div>
+                        <div>
+                            @foreach (RecordDetailsOption chooseOption in rr.RecordDetails.Where(x => x.QuestionID == 41).FirstOrDefault().RecordDetailsOptions)
+                            {
+                                <span>@chooseOption.QuestionOption.OptionName</span>
+                            }
+                        </div>
                     </div>
                     notes = rr.RecordDetails.Where(x => x.QuestionID == 10).FirstOrDefault().TextAnswer;
                     <div class="otherActions">
@@ -596,10 +623,31 @@
 
                     </div>
                     break;
+                // 小便
                 case 5:
                     <div>@rr.RecordDetails.Where(x => x.QuestionID == 14).FirstOrDefault().TextAnswer</div>
                     <div class="verticalBar" style="background-color:rgb(@eachService.ColorR,@eachService.ColorG,@eachService.ColorB);"></div>
-                    <div>@rr.RecordDetails.Where(x => x.QuestionID == 15).FirstOrDefault().TextAnswer cc</div>
+                    <div>
+                        <div>cc數</div>
+                        <div>小便顏色</div>
+                        <div>處理者</div>
+                    </div>
+                    <div class="verticalBar" style="background-color:rgb(@eachService.ColorR,@eachService.ColorG,@eachService.ColorB);"></div>
+                    <div>
+                        <div>@rr.RecordDetails.Where(x => x.QuestionID == 15).FirstOrDefault().TextAnswer cc</div>
+                        <div>
+                            @foreach (RecordDetailsOption chooseOption in rr.RecordDetails.Where(x => x.QuestionID == 43).FirstOrDefault().RecordDetailsOptions)
+                            {
+                                <div>@chooseOption.QuestionOption.OptionName</div>
+                            }
+                        </div>
+                        <div>
+                            @foreach (RecordDetailsOption chooseOption in rr.RecordDetails.Where(x => x.QuestionID == 44).FirstOrDefault().RecordDetailsOptions)
+                            {
+                                <div>@chooseOption.QuestionOption.OptionName</div>
+                            }
+                        </div>
+                    </div>
                     notes = rr.RecordDetails.Where(x => x.QuestionID == 16).FirstOrDefault().TextAnswer;
                     <div class="otherActions">
                         @if (notes != null && notes != "")
@@ -610,6 +658,7 @@
 
                     </div>
                     break;
+                // 餐食
                 case 6:
                     <div>@rr.RecordDetails.Where(x => x.QuestionID == 17).FirstOrDefault().TextAnswer</div>
                     <div class="verticalBar" style="background-color:rgb(@eachService.ColorR,@eachService.ColorG,@eachService.ColorB);"></div>
@@ -638,6 +687,7 @@
 
                     </div>
                     break;
+                // 點心
                 case 7:
                     <div>@rr.RecordDetails.Where(x => x.QuestionID == 21).FirstOrDefault().TextAnswer</div>
                     <div class="verticalBar" style="background-color:rgb(@eachService.ColorR,@eachService.ColorG,@eachService.ColorB);"></div>
@@ -659,6 +709,7 @@
 
                     </div>
                     break;
+                // 口腔
                 case 8:
                     <div>@rr.RecordDetails.Where(x => x.QuestionID == 24).FirstOrDefault().TextAnswer</div>
                     <div class="verticalBar" style="background-color:rgb(@eachService.ColorR,@eachService.ColorG,@eachService.ColorB);"></div>
@@ -679,6 +730,7 @@
 
                     </div>
                     break;
+                // 沐浴
                 case 9:
                     <div>@rr.RecordDetails.Where(x => x.QuestionID == 27).FirstOrDefault().TextAnswer</div>
                     <div class="verticalBar" style="background-color:rgb(@eachService.ColorR,@eachService.ColorG,@eachService.ColorB);"></div>
@@ -698,21 +750,24 @@
 
                     </div>
                     break;
+                // 量測
                 case 10:
                     <div>@rr.RecordDetails.Where(x => x.QuestionID == 30).FirstOrDefault().TextAnswer</div>
                     <div class="verticalBar" style="background-color:rgb(@eachService.ColorR,@eachService.ColorG,@eachService.ColorB);"></div>
                     <div>
                         <div>體溫</div>
+                        <div>體重</div>
                         <div>收縮壓</div>
                         <div>舒張壓</div>
                         <div>脈搏</div>
                     </div>
                     <div class="verticalBar" style="background-color:rgb(@eachService.ColorR,@eachService.ColorG,@eachService.ColorB);"></div>
                     <div>
-                        <div>@rr.RecordDetails.Where(x => x.QuestionID == 31).FirstOrDefault().TextAnswer</div>
-                        <div>@rr.RecordDetails.Where(x => x.QuestionID == 32).FirstOrDefault().TextAnswer</div>
-                        <div>@rr.RecordDetails.Where(x => x.QuestionID == 33).FirstOrDefault().TextAnswer</div>
-                        <div>@rr.RecordDetails.Where(x => x.QuestionID == 34).FirstOrDefault().TextAnswer</div>
+                        <div>@rr.RecordDetails.Where(x => x.QuestionID == 31).FirstOrDefault().TextAnswer °C</div>
+                        <div>@rr.RecordDetails.Where(x => x.QuestionID == 52).FirstOrDefault().TextAnswer kg</div>
+                        <div>@rr.RecordDetails.Where(x => x.QuestionID == 32).FirstOrDefault().TextAnswer mmHg</div>
+                        <div>@rr.RecordDetails.Where(x => x.QuestionID == 33).FirstOrDefault().TextAnswer mmHg</div>
+                        <div>@rr.RecordDetails.Where(x => x.QuestionID == 34).FirstOrDefault().TextAnswer bpm</div>
                     </div>
                     notes = rr.RecordDetails.Where(x => x.QuestionID == 35).FirstOrDefault().TextAnswer;
                     <div class="otherActions">

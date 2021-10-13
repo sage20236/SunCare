@@ -40,6 +40,9 @@
 
 
             });
+
+            
+            var abnormal = -1;
             $(".abnormalBtn").click(function () {
                 if ($(this).attr("isPressed").trim() == "true") {
                     $(this).css({ "background-color": "var(--grayColor)" });
@@ -47,7 +50,8 @@
                     
                     $(".genderBtn").css({ "background-color": "var(--grayColor)" });
                     $(".genderBtn").attr("isPressed", "false");
-
+                    
+                    abnormal = -1;
                 }
                 else {
                     $(".abnormalBtn").css({ "background-color": "var(--grayColor)" });
@@ -58,8 +62,11 @@
                     
                     $(".genderBtn").css({ "background-color": "var(--grayColor)" });
                     $(".genderBtn").attr("isPressed", "false");
+                    
+                    abnormal = 1;
 
                 }
+                $(".caseInfoList").load("/Home/CaseAbnormalPatient", { abnormal });
 
             });
         });

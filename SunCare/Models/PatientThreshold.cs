@@ -15,11 +15,12 @@ namespace SunCare.Models
     public partial class PatientThreshold
     {
         public int ThresholdID { get; set; }
-        public int ThresholdTag { get; set; }
         public string ThresholdValue { get; set; }
-        public string ThresholdRange { get; set; }
         public int OptionID { get; set; }
         public int PatientID { get; set; }
+        public int ServiceID { get; set; }
+        public int QuestionID { get; set; }
+        public string ThresholdTag { get; set; }
     
         public virtual Patient Patient { get; set; }
     }

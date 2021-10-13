@@ -32,9 +32,10 @@
             <PropertyRef Name="ThresholdID" />
           </Key>
           <Property Name="ThresholdID" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
-          <Property Name="ThresholdTag" Type="int" Nullable="false" />
+          <Property Name="ThresholdTag" Type="nvarchar" MaxLength="100" Nullable="false" />
           <Property Name="ThresholdValue" Type="nvarchar" MaxLength="500" Nullable="false" />
-          <Property Name="ThresholdRange" Type="nvarchar" MaxLength="500" />
+          <Property Name="ServiceID" Type="int" Nullable="false" />
+          <Property Name="QuestionID" Type="int" Nullable="false" />
           <Property Name="OptionID" Type="int" Nullable="false" />
           <Property Name="PatientID" Type="int" Nullable="false" />
         </EntityType>
@@ -560,12 +561,13 @@
             <PropertyRef Name="ThresholdID" />
           </Key>
           <Property Name="ThresholdID" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
-          <Property Name="ThresholdTag" Type="Int32" Nullable="false" />
           <Property Name="ThresholdValue" Type="String" Nullable="false" MaxLength="500" FixedLength="false" Unicode="true" />
-          <Property Name="ThresholdRange" Type="String" MaxLength="500" FixedLength="false" Unicode="true" />
           <Property Name="OptionID" Type="Int32" Nullable="false" />
           <Property Name="PatientID" Type="Int32" Nullable="false" />
           <NavigationProperty Name="Patient" Relationship="SunCareModel.FK_PatientThreshold_Patient" FromRole="PatientThreshold" ToRole="Patient" />
+          <Property Name="ServiceID" Type="Int32" Nullable="false" />
+          <Property Name="QuestionID" Type="Int32" Nullable="false" />
+          <Property Name="ThresholdTag" Type="String" Nullable="false" MaxLength="100" FixedLength="false" Unicode="true" />
         </EntityType>
         <Association Name="FK_PatientThreshold_Patient">
           <End Type="SunCareModel.Patient" Role="Patient" Multiplicity="1" />
@@ -689,11 +691,12 @@
           <EntitySetMapping Name="PatientThresholds">
             <EntityTypeMapping TypeName="SunCareModel.PatientThreshold">
               <MappingFragment StoreEntitySet="PatientThreshold">
+                <ScalarProperty Name="ThresholdTag" ColumnName="ThresholdTag" />
+                <ScalarProperty Name="QuestionID" ColumnName="QuestionID" />
+                <ScalarProperty Name="ServiceID" ColumnName="ServiceID" />
                 <ScalarProperty Name="PatientID" ColumnName="PatientID" />
                 <ScalarProperty Name="OptionID" ColumnName="OptionID" />
-                <ScalarProperty Name="ThresholdRange" ColumnName="ThresholdRange" />
                 <ScalarProperty Name="ThresholdValue" ColumnName="ThresholdValue" />
-                <ScalarProperty Name="ThresholdTag" ColumnName="ThresholdTag" />
                 <ScalarProperty Name="ThresholdID" ColumnName="ThresholdID" />
               </MappingFragment>
             </EntityTypeMapping>

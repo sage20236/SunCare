@@ -132,6 +132,14 @@
     <Compile Include="Global.asax.cs">
       <DependentUpon>Global.asax</DependentUpon>
     </Compile>
+    <Compile Include="Models\AbnormalPatient.cs" />
+    <Compile Include="Models\AbnormalRecord.cs" />
+    <Compile Include="Models\NewRecord.cs" />
+    <Compile Include="Models\Messure.cs" />
+    <Compile Include="Models\Urinate.cs" />
+    <Compile Include="Models\Stool.cs" />
+    <Compile Include="Models\Medicine.cs" />
+    <Compile Include="Models\NewPatient.cs" />
     <Compile Include="Models\Employee.cs">
       <DependentUpon>Model1.tt</DependentUpon>
     </Compile>
@@ -255,6 +263,7 @@
     <Content Include="Views\Home\CasePartialPatient.cshtml" />
     <Content Include="Views\Shared\Mask.cshtml" />
     <Content Include="Views\Shared\_loading.cshtml" />
+    <Content Include="Views\Home\CaseAbnormalPatient.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />

@@ -24,7 +24,8 @@ namespace SunCare.Models
         public int QuestionID { get; set; }
         public string TextAnswer { get; set; }
         public int RecordID { get; set; }
-    
+        public Nullable<int> Abnormal { get; set; }
+
         public virtual Question Question { get; set; }
         public virtual Record Record { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
