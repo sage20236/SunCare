@@ -483,9 +483,8 @@
     {
         foreach (RecordDetail eachDetails in patientRecords.Where(x => x.Record.CreateTime > DateTime.Now.Date && x.Record.CreateTime <= DateTime.Now.AddDays(1).Date))
         {
-
             <div class="showServiceRecord" style="background-color: rgb(@eachDetails.Record.ServiceItem.ColorR,@eachDetails.Record.ServiceItem.ColorG,@eachDetails.Record.ServiceItem.ColorB);">
-                <div class="showServiceName">@eachDetails.Record.ServiceItem.ServiceName</div>
+                <div class="showServiceName">@eachDetails.Record.ServiceItem.ServiceName @eachDetails.Abnormal</div>
                 <div class="showAllRecords">
                     @showDetailsAnswer(eachDetails.Record, eachDetails.Record.ServiceItem)
                 </div>
@@ -531,10 +530,8 @@
 
     @helper showDetailsAnswer(Record rr, ServiceItem eachService)
     {
+        // 研究如何透過rr可以取得abnormal狀態
         <div class="showEachRecord" serviceID="@rr.ServiceID" recordID="@rr.RecordID" record="@Json.Encode(rr.clone())">
-            @{
-                var a = rr.RecordDetails.Where(x => x.Abnormal == 1);
-            }
             @switch (eachService.ServiceID)
             {
                 // 用藥
@@ -542,12 +539,10 @@
                     <div>@rr.RecordDetails.Where(x => x.QuestionID == 1).FirstOrDefault().TextAnswer</div>
                     <div class="verticalBar" style="background-color:rgb(@eachService.ColorR,@eachService.ColorG,@eachService.ColorB);"></div>
                     <div>
-                        <div>
-                            @foreach (RecordDetailsOption chooseOption in rr.RecordDetails.Where(x => x.QuestionID == 2).FirstOrDefault().RecordDetailsOptions)
-                            {
-                                <span>@chooseOption.QuestionOption.OptionName</span>
-                            }
-                        </div>
+                        @foreach (RecordDetailsOption chooseOption in rr.RecordDetails.Where(x => x.QuestionID == 2).FirstOrDefault().RecordDetailsOptions)
+                        {
+                            <span>@chooseOption.QuestionOption.OptionName</span>
+                        }
                     </div>
                     <div class="verticalBar" style="background-color:rgb(@eachService.ColorR,@eachService.ColorG,@eachService.ColorB);"></div>
                     <div>
@@ -555,19 +550,37 @@
                             <div>@rr.RecordDetails.Where(x => x.QuestionID == 3).FirstOrDefault().TextAnswer 顆</div>
                         </div>
                     </div>
-                    <div class="verticalBar" style="background-color:rgb(@eachService.ColorR,@eachService.ColorG,@eachService.ColorB);"></div>
+
                     var notes = rr.RecordDetails.Where(x => x.QuestionID == 4).FirstOrDefault().TextAnswer;
+                    var abn = 0;
+                    try
+                    {
+                        abn = rr.RecordDetails.Where(x => x.Abnormal == 1).First().Abnormal;
+                    }
+                    catch
+                    {
+                    }
+                    <div class="otherActions">
+                        @if (abn.Equals(1))
+                        {
+                            <img id="abnormalImg2" src="~/Images/icon_Abn.png" />
+                        }
+                    </div>
+
+                    <!--
+                     <div class="verticalBar" style="background-color:rgb(eachService.ColorR,eachService.ColorG,eachService.ColorB);"></div>
 
                     <div class="otherActions">
-                        <a tabindex="0" class="expandDot removeA" recordID="@rr.RecordID" role="button" data-toggle="popover" data-trigger="focus" title="">
+                        <a tabindex="0" class="expandDot removeA" recordID=rr.RecordID" role="button" data-toggle="popover" data-trigger="focus" title="">
                             <img src="~/Images/three_dot.png" />
                         </a>
-                        @showMedicine("午餐飯前\n心血管疾病類:3類\n保健食品類:2顆", rr.RecordID)
+                        showMedicine("午餐飯前\n心血管疾病類:3類\n保健食品類:2顆", rr.RecordID)
                     </div>
                     if (notes != null && notes != "")
                     {
-                        @showNote(notes, rr.RecordID)
+                        showNote(notes, rr.RecordID)
                     }
+                    -->
                     break;
                 // 飲水
                 case 3:
@@ -614,14 +627,35 @@
                         </div>
                     </div>
                     notes = rr.RecordDetails.Where(x => x.QuestionID == 10).FirstOrDefault().TextAnswer;
+                    abn = 0;
+                    try
+                    {
+                        abn = rr.RecordDetails.Where(x => x.Abnormal == 1).First().Abnormal;
+                    }
+                    catch
+                    {
+                    }
                     <div class="otherActions">
-                        @if (notes != null && notes != "")
+                        @if (abn.Equals(1))
                         {
-                            <img src="~/Images/three_dot.png" class="notesBtns" recordID="@rr.RecordID" />
-                            @showNote(notes, rr.RecordID)
+                            <img id="abnormalImg2" src="~/Images/icon_Abn.png" />
                         }
-
                     </div>
+
+                    <!--
+                     <div class="verticalBar" style="background-color:rgb(eachService.ColorR,eachService.ColorG,eachService.ColorB);"></div>
+
+                    <div class="otherActions">
+                        <a tabindex="0" class="expandDot removeA" recordID=rr.RecordID" role="button" data-toggle="popover" data-trigger="focus" title="">
+                            <img src="~/Images/three_dot.png" />
+                        </a>
+                        showMedicine("午餐飯前\n心血管疾病類:3類\n保健食品類:2顆", rr.RecordID)
+                    </div>
+                    if (notes != null && notes != "")
+                    {
+                        showNote(notes, rr.RecordID)
+                    }
+                    -->
                     break;
                 // 小便
                 case 5:
@@ -649,14 +683,35 @@
                         </div>
                     </div>
                     notes = rr.RecordDetails.Where(x => x.QuestionID == 16).FirstOrDefault().TextAnswer;
+                    abn = 0;
+                    try
+                    {
+                        abn = rr.RecordDetails.Where(x => x.Abnormal == 1).First().Abnormal;
+                    }
+                    catch
+                    {
+                    }
                     <div class="otherActions">
-                        @if (notes != null && notes != "")
+                        @if (abn.Equals(1))
                         {
-                            <img src="~/Images/three_dot.png" class="notesBtns" recordID="@rr.RecordID" />
-                            @showNote(notes, rr.RecordID)
+                            <img id="abnormalImg2" src="~/Images/icon_Abn.png" />
                         }
-
                     </div>
+
+                    <!--
+                     <div class="verticalBar" style="background-color:rgb(eachService.ColorR,eachService.ColorG,eachService.ColorB);"></div>
+
+                    <div class="otherActions">
+                        <a tabindex="0" class="expandDot removeA" recordID=rr.RecordID" role="button" data-toggle="popover" data-trigger="focus" title="">
+                            <img src="~/Images/three_dot.png" />
+                        </a>
+                        showMedicine("午餐飯前\n心血管疾病類:3類\n保健食品類:2顆", rr.RecordID)
+                    </div>
+                    if (notes != null && notes != "")
+                    {
+                        showNote(notes, rr.RecordID)
+                    }
+                    -->
                     break;
                 // 餐食
                 case 6:
@@ -770,14 +825,35 @@
                         <div>@rr.RecordDetails.Where(x => x.QuestionID == 34).FirstOrDefault().TextAnswer bpm</div>
                     </div>
                     notes = rr.RecordDetails.Where(x => x.QuestionID == 35).FirstOrDefault().TextAnswer;
+                    abn = 0;
+                    try
+                    {
+                        abn = rr.RecordDetails.Where(x => x.Abnormal == 1).First().Abnormal;
+                    }
+                    catch
+                    {
+                    }
                     <div class="otherActions">
-                        @if (notes != null && notes != "")
+                        @if (abn.Equals(1))
                         {
-                            <img src="~/Images/three_dot.png" class="notesBtns" recordID="@rr.RecordID" />
-                            @showNote(notes, rr.RecordID)
+                            <img id="abnormalImg2" src="~/Images/icon_Abn.png" />
                         }
-
                     </div>
+
+                    <!--
+                     <div class="verticalBar" style="background-color:rgb(eachService.ColorR,eachService.ColorG,eachService.ColorB);"></div>
+
+                    <div class="otherActions">
+                        <a tabindex="0" class="expandDot removeA" recordID=rr.RecordID" role="button" data-toggle="popover" data-trigger="focus" title="">
+                            <img src="~/Images/three_dot.png" />
+                        </a>
+                        showMedicine("午餐飯前\n心血管疾病類:3類\n保健食品類:2顆", rr.RecordID)
+                    </div>
+                    if (notes != null && notes != "")
+                    {
+                        showNote(notes, rr.RecordID)
+                    }
+                    -->
                     break;
                 case 11:
                     <div>@rr.RecordDetails.Where(x => x.QuestionID == 36).FirstOrDefault().TextAnswer</div>

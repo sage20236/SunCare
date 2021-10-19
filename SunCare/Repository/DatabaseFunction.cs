@@ -34,40 +34,62 @@ namespace SunCare.Repository
             SunCareEntities db = new SunCareEntities();
             return db.ServiceItems.ToList();
         }
+        // 按照項目排序
         public static List<RecordDetail> getAllRecordsOrderTime(int patientID)
         {
             SunCareEntities db = new SunCareEntities();
             List<RecordDetail> orderTimeRecords = db.RecordDetails.Where(x => x.Record.PatientID == patientID && (x.QuestionID == 1 || x.QuestionID == 5 || x.QuestionID == 8 || x.QuestionID == 14 || x.QuestionID == 17 || x.QuestionID == 21 || x.QuestionID == 24 || x.QuestionID == 27 || x.QuestionID == 30 || x.QuestionID == 36)).OrderByDescending(x => x.TextAnswer).ToList();
-            List<AbnormalRecord> abnormalRecords = DatabaseFunction.GetAbnormalRecord();
+            List<AbnormalRecord> abnormalRecords = DatabaseFunction.GetAbnormalRecord().Where(x => x.PatientID == patientID).ToList();
 
 
             for (int i = 0; i < orderTimeRecords.Count; i++)
             {
                 var recordIdA = orderTimeRecords[i].RecordID;
-                var ansIdA = orderTimeRecords[i].AnswerID;
-                var abnStatus = orderTimeRecords[i].Abnormal;
-
+                var abn = -1;
                 for (int j = 0; j < abnormalRecords.Count; j++)
                 {
                     var recordIdB = abnormalRecords[j].RecordID;
-                    var ansIdB = abnormalRecords[j].AnswerID;
                     if (recordIdA.Equals(recordIdB))
                     {
-                        orderTimeRecords[i].Abnormal = 1;
+                        abn = 1;
+                        break;
                     }
                     else
                     {
-                        orderTimeRecords[i].Abnormal = 0;
+                        abn = 0;
                     }
                 }
-                var abnStatus2 = abnStatus;
+                if (!abn.Equals(1))
+                {
+                    orderTimeRecords[i].Abnormal = 0;
+                }
+                else
+                {
+                    orderTimeRecords[i].Abnormal = 1;
+                }
             }
             return orderTimeRecords;
         }
+        // 按照時間排序
         public static List<Record> orderbyRecordByTime(List<Record> records)
         {
             List<Record> orderTimeRecords = records.OrderByDescending(y => y.RecordDetails.Where(x => x.QuestionID == 1 || x.QuestionID == 5 || x.QuestionID == 8 || x.QuestionID == 14 || x.QuestionID == 17 || x.QuestionID == 21 || x.QuestionID == 24 || x.QuestionID == 27 || x.QuestionID == 30 || x.QuestionID == 36).FirstOrDefault().TextAnswer).ToList();
+            List<AbnormalRecord> abnormalRecords = GetAbnormalRecord();
+            for (int i = 0; i < orderTimeRecords.Count; i++)
+            {
+                RecordDetail recordDetail = orderTimeRecords[i].RecordDetails.Where(x => x.QuestionID == 1 || x.QuestionID == 5 || x.QuestionID == 8 || x.QuestionID == 14 || x.QuestionID == 17 || x.QuestionID == 21 || x.QuestionID == 24 || x.QuestionID == 27 || x.QuestionID == 30 || x.QuestionID == 36).FirstOrDefault();
+                var rIdA = recordDetail.RecordID;
 
+                for (int j = 0; j < abnormalRecords.Count; j++)
+                {
+                    var rIdB = abnormalRecords[j].RecordID;
+                    if (rIdA.Equals(rIdB))
+                    {
+                        recordDetail.Abnormal = 1;
+                    }
+
+                }
+            }
             return orderTimeRecords;
         }
         public static List<NewPatient> getPatients(int gender = -1)
@@ -223,12 +245,13 @@ namespace SunCare.Repository
                         if (recordQuestionId.Equals(9))
                         {
                             col = "style";
+                            value = record.OptionID.ToString();
                         }
                         else if (recordQuestionId.Equals(40))
                         {
                             col = "color";
+                            value = record.OptionID.ToString();
                         }
-                        value = record.OptionID.ToString();
                     }
                 }
 
@@ -252,27 +275,29 @@ namespace SunCare.Repository
             foreach (var id in index)
             {
                 var patientId = id.PatientID;
-                var recordId = id.RecordID;
+                var rIdA = id.RecordID;
                 var ansId = -1;
                 var col = "null";
                 var value = "null";
 
                 foreach (var record in query)
                 {
-                    var r = record.RecordID;
-                    if (recordId.Equals(r))
+                    var rIdB = record.RecordID;
+                    var recordQuestionId = record.QuestionID;
+
+                    if (rIdA.Equals(rIdB))
                     {
-                        var recordQuestionId = record.QuestionID;
                         ansId = record.AnswerID;
-                        if (recordQuestionId.Equals(43))
-                        {
-                            col = "color";
-                        }
-                        else if (recordQuestionId.Equals(15))
+                        if (recordQuestionId.Equals(15))
                         {
                             col = "volume";
+                            value = record.OptionID.ToString();
                         }
-                        value = record.OptionID.ToString();
+                        else if (recordQuestionId.Equals(43))
+                        {
+                            col = "color";
+                            value = record.OptionID.ToString();
+                        }
                     }
                 }
 
@@ -280,7 +305,7 @@ namespace SunCare.Repository
                 {
                     Urinate urinate = new Urinate();
                     urinate.PatientID = id.PatientID;
-                    urinate.RecordID = recordId;
+                    urinate.RecordID = rIdA;
                     urinate.AnswerID = ansId;
                     urinate.Col = col;
                     urinate.Value = value;
@@ -314,24 +339,28 @@ namespace SunCare.Repository
                         else if (recordQuestionId.Equals(31))
                         {
                             col = "temperature";
+                            value = record.TextAnswer;
                         }
                         else if (recordQuestionId.Equals(32))
                         {
                             col = "sysBp";
+                            value = record.TextAnswer;
                         }
                         else if (recordQuestionId.Equals(33))
                         {
                             col = "diaBp";
+                            value = record.TextAnswer;
                         }
                         else if (recordQuestionId.Equals(34))
                         {
                             col = "hr";
+                            value = record.TextAnswer;
                         }
                         else if (recordQuestionId.Equals(52))
                         {
                             col = "weight";
+                            value = record.TextAnswer;
                         }
-                        value = record.TextAnswer;
                     }
 
                     if (!col.Equals("null") && !value.Equals("null"))
@@ -498,7 +527,7 @@ namespace SunCare.Repository
                                         if (urinates[j].Col.Equals("color"))
                                         {
                                             var color = urinates[j].Value;
-                                            if (tresholdValue.Equals(color))
+                                            if (!tresholdValue.Equals(color))
                                             {
                                                 Console.WriteLine("PASS");
                                             }
